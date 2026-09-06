@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="description" content="香樟树01号 · 千年古树档案画册，真实翻页效果">
+<title>香樟树 01 号 · 千年古树档案</title>
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@600;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
+<style>
+/* ============ 基础 ============ */
+:root{
+  --ink:#16261F;
+  --ink-2:#1E352A;
+  --ink-3:#0E1A14;
+  --wood:#7A5C3E;
+  --gold:#C9A24B;
+  --gold-hi:#E6CD85;
+  --paper:#F2EAD8;
+  --paper-dim:rgba(242,234,216,.62);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+  background:
+    radial-gradient(140% 110% at 50% 0%, #264533 0%, var(--ink) 50%, var(--ink-3) 100%);
+  color:var(--paper);
+  overflow:hidden;
+  position:fixed;inset:0;
+  overscroll-behavior:none;
+  -webkit-user-select:none;user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-touch-callout:none;
+  display:flex;flex-direction:column;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;
+  background:
+    repeating-linear-gradient(92deg, transparent 0, transparent 3px, rgba(0,0,0,.04) 3px, rgba(0,0,0,.04) 4px),
+    repeating-linear-gradient(88deg, transparent 0, transparent 5px, rgba(255,255,255,.015) 5px, rgba(255,255,255,.015) 6px);
+  z-index:0;
+}
+/* ============ 加载遮罩 ============ */
+#loader{
+  position:fixed;inset:0;z-index:60;
+  background:radial-gradient(130% 100% at 50% 0%, #24402F 0%, var(--ink) 52%, var(--ink-3) 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
+  transition:opacity .5s ease;
+}
+#loader.hide{opacity:0;pointer-events:none;}
+.loader-ring{
+  width:52px;height:52px;border-radius:50%;
+  border:1px solid rgba(201,162,75,.25);
+  border-top-color:var(--gold);
+  animation:spin 1s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loader-text{
+  font-family:"Noto Serif SC",serif;
+  color:var(--paper-dim);letter-spacing:.4em;font-size:13px;padding-left:.4em;
+}
+.loader-num{color:var(--gold);font-family:"Noto Serif SC",serif;letter-spacing:.2em;font-size:11px;}
+/* ============ 主舞台 ============ */
+.stage{
+  flex:1;
+  display:flex;align-items:center;justify-content:center;
+  perspective:1800px;
+  -webkit-perspective:1800px;
+  position:relative;
+  min-height:0;
+  z-index:1;
+}
+/* ============ 书本 ============ */
+.book{
+  position:relative;
+  transform-style:preserve-3d;
+  -webkit-transform-style:preserve-3d;
+  opacity:0;
+  transform:translateY(16px);
+  transition:opacity .6s ease .1s, transform .6s ease .1s, width .4s ease, height .4s ease;
+  filter:drop-shadow(0 24px 48px rgba(0,0,0,.55));
+}
+.book.ready{opacity:1;transform:translateY(0);}
+.page{
+  position:absolute;inset:0;
+  transform-style:preserve-3d;
+  -webkit-transform-style:preserve-3d;
+  z-index:1;
+  cursor:pointer;
+  will-change:transform, opacity;
+  opacity:1;
+  transition:opacity .18s ease;
+}
+.page.is-cur{z-index:3;}
+.page.is-flipping{z-index:6;}
+.page.is-done{z-index:0;opacity:0;pointer-events:none;}
+/* 翻页动画：页面抬起 + 轻微弯曲 + 动态阴影 */
+@keyframes flipFwd{
+  0%{
+    transform: rotateY(0deg) translateZ(0px) scaleY(1);
+    box-shadow: 0 10px 36px rgba(0,0,0,.5);
+  }
+  25%{
+    transform: rotateY(-45deg) translateZ(22px) scaleY(1.018);
+    box-shadow: -10px 18px 52px rgba(0,0,0,.55);
+  }
+  55%{
+    transform: rotateY(-100deg) translateZ(14px) scaleY(1.012);
+    box-shadow: -18px 14px 48px rgba(0,0,0,.5);
+  }
+  100%{
+    transform: rotateY(-180deg) translateZ(0px) scaleY(1);
+    box-shadow: -22px 8px 38px rgba(0,0,0,.4);
+  }
+}
+@keyframes flipBack{
+  0%{
+    transform: rotateY(0deg) translateZ(0px) scaleY(1);
+    box-shadow: 0 10px 36px rgba(0,0,0,.5);
+  }
+  25%{
+    transform: rotateY(45deg) translateZ(22px) scaleY(1.018);
+    box-shadow: 10px 18px 52px rgba(0,0,0,.55);
+  }
+  55%{
+    transform: rotateY(100deg) translateZ(14px) scaleY(1.012);
+    box-shadow: 18px 14px 48px rgba(0,0,0,.5);
+  }
+  100%{
+    transform: rotateY(180deg) translateZ(0px) scaleY(1);
+    box-shadow: 22px 8px 38px rgba(0,0,0,.4);
+  }
+}
+.page.flip-fwd{
+  animation: flipFwd .5s cubic-bezier(.32,.08,.28,1) forwards;
+  transform-origin: left center;
+  -webkit-transform-origin: left center;
+}
+.page.flip-back{
+  animation: flipBack .5s cubic-bezier(.32,.08,.28,1) forwards;
+  transform-origin: right center;
+  -webkit-transform-origin: right center;
+}
+.pg-face{
+  position:absolute;inset:0;
+  backface-visibility:hidden;
+  -webkit-backface-visibility:hidden;
+  overflow:hidden;
+  background:var(--ink-3);
+}
+.pg-front{transform:rotateY(0);-webkit-transform:rotateY(0);}
+.pg-back{transform:rotateY(180deg);-webkit-transform:rotateY(180deg);}
+.photo{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;-webkit-user-drag:none;}
+/* 页面纸张纹理（背面） */
+.pg-back{
+  display:flex;align-items:center;justify-content:center;
+  background:
+    repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(122,92,62,.04) 3px, rgba(122,92,62,.04) 4px),
+    repeating-linear-gradient(90deg, transparent, transparent 6px, rgba(122,92,62,.025) 6px, rgba(122,92,62,.025) 7px),
+    radial-gradient(130% 100% at 50% 0%, #F5EEDD 0%, #E4D8BE 80%);
+}
+/* 页面边缘高光（纸张厚度） */
+.pg-face::after{
+  content:"";position:absolute;top:0;bottom:0;left:0;width:2px;
+  background:linear-gradient(90deg, rgba(255,255,255,.35), rgba(255,255,255,0));
+  pointer-events:none;z-index:5;
+}
+.back-mark{display:flex;flex-direction:column;align-items:center;gap:12px;color:#C9A24B;}
+.back-mark svg{opacity:.75;}
+.back-mark .back-no{
+  font-family:"Noto Serif SC",serif;font-size:12px;letter-spacing:.35em;color:rgba(122,92,62,.7);
+}
+/* ============ 封面 ============ */
+.cover{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(140% 110% at 30% 10%, rgba(38,74,55,.85) 0%, transparent 55%),
+    linear-gradient(168deg,#28553D 0%, #1B3126 58%, #11221A 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  text-align:center;
+  padding:8% 6%;
+}
+.cover-frame{
+  position:absolute;inset:5%;
+  border:1px solid rgba(201,162,75,.5);
+  pointer-events:none;
+}
+.cover-frame::after{
+  content:"";position:absolute;inset:7px;
+  border:1px solid rgba(201,162,75,.2);
+}
+.cover-diamond{
+  width:8px;height:8px;margin-bottom:20px;
+  background:var(--gold);
+  transform:rotate(45deg);
+  opacity:.85;
+}
+.cover-kicker{
+  font-size:10.5px;letter-spacing:.5em;color:var(--gold);
+  margin-bottom:14px;padding-left:.5em;
+  font-weight:500;
+}
+.cover h1{
+  font-family:"Noto Serif SC","Songti SC","SimSun",serif;
+  font-weight:900;
+  font-size:clamp(28px,7.5vw,48px);
+  color:var(--gold-hi);
+  letter-spacing:.14em;
+  text-shadow:0 2px 20px rgba(0,0,0,.4);
+  line-height:1.25;
+}
+.cover-rule{
+  width:52px;height:1px;margin:18px 0 14px;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+}
+.cover-sub{
+  font-size:12px;letter-spacing:.4em;color:var(--paper);
+  padding-left:.4em;font-weight:300;
+}
+.cover-data{
+  margin-top:24px;
+  display:flex;flex-direction:column;gap:9px;align-items:center;
+  color:var(--paper-dim);font-size:11.5px;letter-spacing:.14em;font-weight:300;
+}
+.cover-data .row{display:flex;gap:14px;align-items:center;}
+.cover-data .dot{width:3px;height:3px;border-radius:50%;background:var(--gold);opacity:.7;}
+.cover-hint{
+  position:absolute;bottom:7%;left:0;right:0;
+  text-align:center;
+  font-size:10.5px;letter-spacing:.34em;padding-left:.34em;
+  color:var(--paper-dim);font-weight:300;
+  animation:hintPulse 2.6s ease-in-out infinite;
+}
+@keyframes hintPulse{0%,100%{opacity:.5;}50%{opacity:1;}}
+/* ============ 封底 ============ */
+.backcover{
+  position:absolute;inset:0;
+  background:linear-gradient(168deg,#28553D 0%, #1B3126 58%, #11221A 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
+  text-align:center;
+}
+.backcover .the-end{
+  font-family:"Noto Serif SC",serif;font-weight:900;
+  font-size:clamp(26px,6.5vw,40px);color:var(--gold-hi);letter-spacing:.3em;padding-left:.3em;
+}
+.backcover .end-sub{
+  font-size:11px;letter-spacing:.32em;color:var(--paper-dim);padding-left:.32em;font-weight:300;
+}
+/* ============ 底部控制 ============ */
+.controls{
+  flex:none;
+  display:flex;align-items:center;justify-content:center;gap:18px;
+  padding:calc(12px + env(safe-area-inset-bottom)) 0 18px;
+  position:relative;z-index:2;
+}
+.btn{
+  width:44px;height:44px;border-radius:50%;
+  border:1px solid rgba(242,234,216,.3);
+  background:rgba(242,234,216,.07);
+  color:var(--paper);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:background .2s ease, border-color .2s ease, opacity .2s ease, transform .1s ease;
+}
+.btn:hover{background:rgba(201,162,75,.2);border-color:rgba(201,162,75,.55);}
+.btn:active{transform:scale(.93);}
+.btn.disabled{opacity:.2;pointer-events:none;}
+.btn svg{width:19px;height:19px;}
+.pager{
+  font-family:"Noto Serif SC",serif;
+  font-size:13px;letter-spacing:.24em;color:var(--paper-dim);
+  min-width:74px;text-align:center;font-variant-numeric:tabular-nums;
+}
+.pager b{color:var(--gold-hi);font-weight:600;}
+/* ============ 顶部提示 ============ */
+#toast{
+  position:fixed;top:calc(16px + env(safe-area-inset-top));left:0;right:0;
+  text-align:center;z-index:40;
+  opacity:0;transform:translateY(-8px);
+  transition:opacity .45s ease, transform .45s ease;
+  pointer-events:none;
+}
+#toast.show{opacity:1;transform:translateY(0);}
+#toast span{
+  display:inline-block;
+  font-size:11.5px;letter-spacing:.3em;padding-left:.3em;
+  color:var(--paper);
+  background:rgba(22,38,31,.7);
+  border:1px solid rgba(201,162,75,.32);
+  border-radius:999px;
+  padding:9px 20px;
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+}
+@media (prefers-reduced-motion: reduce){
+  .page{animation-duration:.01s !important;}
+  .loader-ring,.cover-hint{animation:none;}
+}
+</style>
+</head>
+<body>
+
+<div id="loader">
+  <div class="loader-ring"></div>
+  <div class="loader-text">正在装订画册</div>
+  <div class="loader-num" id="loaderNum">0 / 14</div>
+</div>
+
+<div id="toast"><span>左右滑动 · 点击翻页</span></div>
+
+<main class="stage">
+  <div class="book" id="book"></div>
+</main>
+
+<footer class="controls">
+  <button class="btn" id="btnPrev" aria-label="上一页" type="button">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+  </button>
+  <div class="pager" id="pager"><b>1</b> / 14</div>
+  <button class="btn" id="btnNext" aria-label="下一页" type="button">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
+  </button>
+</footer>
+
+<script>
+(function(){
+'use strict';
+
+var IMAGES = [
+  'https://aka.doubaocdn.com/s/nFuYvaDRBG',
+  'https://aka.doubaocdn.com/s/GC65t8pZ3H',
+  'https://aka.doubaocdn.com/s/ZdlARLnM1U',
+  'https://aka.doubaocdn.com/s/PO1nO8GjYL',
+  'https://aka.doubaocdn.com/s/CpuFBkTHti',
+  'https://aka.doubaocdn.com/s/5myVLGzmEz',
+  'https://aka.doubaocdn.com/s/8srQ6ZozWK',
+  'https://aka.doubaocdn.com/s/imwDDCQ9DL',
+  'https://aka.doubaocdn.com/s/x7cCz0mz8o',
+  'https://aka.doubaocdn.com/s/SbSi5BTstx',
+  'https://aka.doubaocdn.com/s/qdOXGKZ8Be',
+  'https://aka.doubaocdn.com/s/QUDicFo13H'
+];
+var TOTAL = IMAGES.length + 2;
+var COVER_RATIO = 0.62;
+
+var book = document.getElementById('book');
+var pager = document.getElementById('pager');
+var btnPrev = document.getElementById('btnPrev');
+var btnNext = document.getElementById('btnNext');
+var loader = document.getElementById('loader');
+var loaderNum = document.getElementById('loaderNum');
+var toast = document.getElementById('toast');
+
+var pages = [];
+var cur = 0;
+var animating = false;
+var ratios = [];
+ratios[0] = COVER_RATIO;
+ratios[TOTAL - 1] = COVER_RATIO;
+
+/* ============ 翻页音效（Web Audio 合成） ============ */
+var audioCtx = null;
+var audioUnlocked = false;
+
+function initAudio(){
+  if(audioUnlocked) return;
+  try{
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    audioUnlocked = true;
+  }catch(e){ audioCtx = null; }
+}
+
+function playFlipSound(){
+  if(!audioCtx || audioCtx.state !== 'running') return;
+  var t = audioCtx.currentTime;
+  var sr = audioCtx.sampleRate;
+
+  /* 1. 纸张沙沙声：白噪声 + 带通滤波 + 衰减包络 */
+  var dur = 0.32;
+  var buf = audioCtx.createBuffer(1, Math.floor(sr * dur), sr);
+  var data = buf.getChannelData(0);
+  for(var i = 0; i < data.length; i++){
+    var p = i / data.length;
+    var env = Math.pow(1 - p, 1.4) * (0.6 + 0.4 * Math.sin(p * Math.PI));
+    data[i] = (Math.random() * 2 - 1) * env;
+  }
+  var src = audioCtx.createBufferSource();
+  src.buffer = buf;
+  var bp = audioCtx.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.frequency.setValueAtTime(3200, t);
+  bp.frequency.exponentialRampToValueAtTime(1400, t + dur);
+  bp.Q.value = 0.7;
+  var g = audioCtx.createGain();
+  g.gain.setValueAtTime(0.14, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  src.connect(bp); bp.connect(g); g.connect(audioCtx.destination);
+  src.start(t);
+
+  /* 2. 页面落下的轻响：低频正弦短脉冲 */
+  var osc = audioCtx.createOscillator();
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(200, t + 0.16);
+  osc.frequency.exponentialRampToValueAtTime(70, t + 0.26);
+  var og = audioCtx.createGain();
+  og.gain.setValueAtTime(0.0001, t + 0.16);
+  og.gain.exponentialRampToValueAtTime(0.07, t + 0.17);
+  og.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+  osc.connect(og); og.connect(audioCtx.destination);
+  osc.start(t + 0.16); osc.stop(t + 0.3);
+}
+
+document.addEventListener('touchstart', initAudio, {passive:true, once:true});
+document.addEventListener('click', initAudio, {once:true});
+
+/* ============ 构建页面 ============ */
+function buildPages(){
+  var i, p, front, back;
+  for(i = 0; i < TOTAL; i++){
+    p = document.createElement('div');
+    p.className = 'page' + (i === 0 ? ' is-cur' : '');
+
+    front = document.createElement('div');
+    front.className = 'pg-face pg-front';
+    if(i === 0){
+      front.innerHTML = coverHTML();
+    } else if(i === TOTAL - 1){
+      front.innerHTML = backcoverHTML();
+    } else {
+      var img = document.createElement('img');
+      img.className = 'photo';
+      img.alt = '香樟树01号 第' + i + '页';
+      img.src = IMAGES[i - 1];
+      front.appendChild(img);
+    }
+
+    back = document.createElement('div');
+    back.className = 'pg-face pg-back';
+    back.innerHTML = backMarkHTML(pad(i + 1));
+
+    p.appendChild(front);
+    p.appendChild(back);
+    book.appendChild(p);
+    pages.push(p);
+  }
+}
+
+function pad(n){ return n < 10 ? '0' + n : '' + n; }
+
+function coverHTML(){
+  return '' +
+    '<div class="cover">' +
+      '<div class="cover-frame"></div>' +
+      '<div class="cover-diamond"></div>' +
+      '<div class="cover-kicker">千 年 古 树 档 案</div>' +
+      '<h1>香樟树 01 号</h1>' +
+      '<div class="cover-rule"></div>' +
+      '<div class="cover-sub">古 树 移 栽 · 生 长 纪 实</div>' +
+      '<div class="cover-data">' +
+        '<div class="row"><span>树龄 1800 年</span><span class="dot"></span><span>直径 238 cm</span></div>' +
+        '<div class="row"><span>2013 年移栽</span><span class="dot"></span><span>移植年限 13 年</span></div>' +
+      '</div>' +
+      '<div class="cover-hint">左右滑动翻阅</div>' +
+    '</div>';
+}
+
+function backcoverHTML(){
+  return '' +
+    '<div class="backcover">' +
+      '<div class="the-end">完</div>' +
+      '<div class="end-sub">香樟树 01 号 · 千年古树档案</div>' +
+    '</div>';
+}
+
+function backMarkHTML(no){
+  return '' +
+    '<div class="back-mark">' +
+      '<svg width="30" height="30" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round">' +
+        '<path d="M20 6 C16 12 14 16 14 21 C14 27 17 32 20 34 C23 32 26 27 26 21 C26 16 24 12 20 6 Z"/>' +
+        '<path d="M8 34 L32 34"/>' +
+      '</svg>' +
+      '<div class="back-no">' + no + '</div>' +
+    '</div>';
+}
+
+/* ============ 尺寸适配 ============ */
+function resize(){
+  var ratio = ratios[cur] || COVER_RATIO;
+  var w = window.innerWidth;
+  var h = window.innerHeight;
+  var bh = Math.min(h * 0.78, 900);
+  var bw = bh * ratio;
+  if(bw > w * 0.9){
+    bw = w * 0.9;
+    bh = bw / ratio;
+  }
+  book.style.width = bw + 'px';
+  book.style.height = bh + 'px';
+}
+
+/* ============ 翻页（无闪烁：opacity 渐变） ============ */
+function finishFlip(el){
+  el.classList.remove('is-cur', 'is-flipping');
+  el.classList.remove('flip-fwd', 'flip-back');
+  el.classList.add('is-done');
+  var np = pages[cur];
+  np.classList.remove('is-done');
+  np.classList.add('is-cur');
+  animating = false;
+  resize();
+  updateUI();
+}
+
+function goNext(){
+  if(animating || cur >= TOTAL - 1) return;
+  animating = true;
+  playFlipSound();
+  var el = pages[cur];
+  el.classList.add('is-flipping', 'flip-fwd');
+  var done = false;
+  var onEnd = function(e){
+    if(done) return;
+    if(e && e.animationName && e.animationName !== 'flipFwd') return;
+    done = true;
+    el.removeEventListener('animationend', onEnd);
+    cur++;
+    finishFlip(el);
+  };
+  el.addEventListener('animationend', onEnd);
+  setTimeout(function(){ if(animating) onEnd(null); }, 700);
+}
+
+function goPrev(){
+  if(animating || cur <= 0) return;
+  animating = true;
+  playFlipSound();
+  var el = pages[cur];
+  el.classList.add('is-flipping', 'flip-back');
+  var done = false;
+  var onEnd = function(e){
+    if(done) return;
+    if(e && e.animationName && e.animationName !== 'flipBack') return;
+    done = true;
+    el.removeEventListener('animationend', onEnd);
+    cur--;
+    finishFlip(el);
+  };
+  el.addEventListener('animationend', onEnd);
+  setTimeout(function(){ if(animating) onEnd(null); }, 700);
+}
+
+function updateUI(){
+  pager.innerHTML = '<b>' + (cur + 1) + '</b> / ' + TOTAL;
+  btnPrev.classList.toggle('disabled', cur <= 0);
+  btnNext.classList.toggle('disabled', cur >= TOTAL - 1);
+}
+
+/* ============ 交互 ============ */
+var startX = 0, startY = 0, moved = false, suppressClick = false;
+
+book.addEventListener('touchstart', function(e){
+  startX = e.touches[0].clientX;
+  startY = e.touches[0].clientY;
+  moved = false;
+}, {passive:true});
+
+book.addEventListener('touchmove', function(e){
+  var dx = e.touches[0].clientX - startX;
+  var dy = e.touches[0].clientY - startY;
+  if(Math.abs(dx) > 8 || Math.abs(dy) > 8) moved = true;
+  if(moved && Math.abs(dx) > Math.abs(dy)) e.preventDefault();
+}, {passive:false});
+
+book.addEventListener('touchend', function(e){
+  if(!moved) return;
+  var dx = e.changedTouches[0].clientX - startX;
+  if(Math.abs(dx) > 40){
+    suppressClick = true;
+    if(dx < 0) goNext(); else goPrev();
+    setTimeout(function(){ suppressClick = false; }, 350);
+  }
+}, {passive:true});
+
+book.addEventListener('click', function(e){
+  if(suppressClick) return;
+  var r = book.getBoundingClientRect();
+  var x = e.clientX - r.left;
+  if(x < r.width * 0.42) goPrev();
+  else if(x > r.width * 0.58) goNext();
+});
+
+btnPrev.addEventListener('click', goPrev);
+btnNext.addEventListener('click', goNext);
+
+document.addEventListener('keydown', function(e){
+  if(e.key === 'ArrowRight') goNext();
+  else if(e.key === 'ArrowLeft') goPrev();
+});
+
+window.addEventListener('resize', resize);
+
+/* ============ 预加载 ============ */
+var loaded = 0;
+function preload(cb){
+  var n = IMAGES.length;
+  IMAGES.forEach(function(u, idx){
+    var im = new Image();
+    im.onload = im.onerror = function(){
+      var r = (im.naturalWidth && im.naturalHeight) ? (im.naturalWidth / im.naturalHeight) : COVER_RATIO;
+      ratios[idx + 1] = r;
+      loaded++;
+      loaderNum.textContent = loaded + ' / ' + TOTAL;
+      if(loaded >= n) cb();
+    };
+    im.src = u;
+  });
+}
+
+/* ============ 启动 ============ */
+preload(function(){
+  buildPages();
+  resize();
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      book.classList.add('ready');
+      loader.classList.add('hide');
+      updateUI();
+      setTimeout(function(){
+        toast.classList.add('show');
+        setTimeout(function(){ toast.classList.remove('show'); }, 3000);
+      }, 400);
+    });
+  });
+});
+
+})();
+</script>
+</body>
+</html>
