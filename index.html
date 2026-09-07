@@ -64,7 +64,7 @@ body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,-apple
 .backcover{position:absolute;inset:0;background:linear-gradient(168deg,#28553D 0%, #1B3126 58%, #11221A 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;text-align:center;}
 .backcover .the-end{font-family:"Noto Serif SC",serif;font-weight:900;font-size:clamp(26px,6.5vw,40px);color:var(--gold-hi);letter-spacing:.3em;padding-left:.3em;}
 .backcover .end-sub{font-size:11px;letter-spacing:.32em;color:var(--paper-dim);padding-left:.32em;font-weight:300;}
-.controls{flex:none;display:flex;align-items:center;justify-content:center;gap:14px;padding:calc(12px + env(safe-area-inset-bottom)) 0 16px;position:relative;z-index:2;}
+.controls{flex:none;display:flex;align-items:center;justify-content:center;gap:10px;padding:calc(12px + env(safe-area-inset-bottom)) 0 16px;position:relative;z-index:2;}
 .btn{width:42px;height:42px;border-radius:50%;border:1px solid rgba(242,234,216,.3);background:rgba(242,234,216,.07);color:var(--paper);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s ease, border-color .2s ease, opacity .2s ease, transform .1s ease;}
 .btn:hover{background:rgba(201,162,75,.2);border-color:rgba(201,162,75,.55);}
 .btn:active{transform:scale(.93);}
@@ -80,6 +80,24 @@ body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,-apple
 #toast{position:fixed;top:calc(16px + env(safe-area-inset-top));left:0;right:0;text-align:center;z-index:40;opacity:0;transform:translateY(-8px);transition:opacity .45s ease, transform .45s ease;pointer-events:none;}
 #toast.show{opacity:1;transform:translateY(0);}
 #toast span{display:inline-block;font-size:11.5px;letter-spacing:.3em;padding-left:.3em;color:var(--paper);background:rgba(22,38,31,.82);border:1px solid rgba(201,162,75,.32);border-radius:999px;padding:9px 20px;}
+#album{position:fixed;inset:0;z-index:50;background:rgba(10,18,13,.98);display:none;flex-direction:column;}
+#album.show{display:flex;}
+.album-head{flex:none;display:flex;align-items:center;justify-content:space-between;padding:14px 14px 10px;padding-top:calc(14px + env(safe-area-inset-top));}
+.album-title{font-family:"Noto Serif SC",serif;font-size:15px;letter-spacing:.24em;color:var(--gold-hi);display:flex;align-items:baseline;gap:10px;}
+.album-title .cnt{font-size:10px;color:var(--paper-dim);letter-spacing:.14em;font-weight:300;}
+.album-close{width:38px;height:38px;border-radius:50%;border:1px solid rgba(242,234,216,.3);background:rgba(242,234,216,.07);color:var(--paper);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:15px;flex:none;transition:background .2s ease, transform .1s ease;}
+.album-close:active{transform:scale(.92);}
+.album-body{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 12px calc(24px + env(safe-area-inset-bottom));}
+.album-sec-title{font-family:"Noto Serif SC",serif;font-size:13px;letter-spacing:.18em;color:var(--gold-hi);margin:16px 2px 9px;display:flex;align-items:baseline;gap:10px;}
+.album-sec-title .cnt{font-size:9.5px;color:var(--paper-dim);letter-spacing:.12em;font-weight:300;}
+.album-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;}
+.album-cell{position:relative;aspect-ratio:1/1;border-radius:3px;overflow:hidden;background:var(--ink-2);cursor:pointer;border:1px solid rgba(201,162,75,.14);transition:transform .1s ease;}
+.album-cell:active{transform:scale(.95);}
+.album-cell img{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;}
+.album-cell .pg{position:absolute;right:2px;bottom:2px;font-size:8px;color:rgba(242,234,216,.85);background:rgba(14,26,20,.72);border-radius:2px;padding:1px 4px;letter-spacing:.05em;line-height:1.4;}
+@media(min-width:700px){
+  #album{left:50%;width:100%;max-width:700px;transform:translateX(-50%);border-left:1px solid rgba(201,162,75,.18);border-right:1px solid rgba(201,162,75,.18);}
+}
 </style>
 </head>
 <body>
@@ -88,16 +106,155 @@ body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,-apple
   <div class="loader-ring"></div>
   <div class="loader-text">正在装订画册</div>
 </div>
-<div id="toast"><span>左右滑动 · 点击翻页 · 目录可跳转</span></div>
+<div id="toast"><span>左右滑动翻页 · 相册看全部</span></div>
 
 <main class="stage"><div class="book" id="book"></div></main>
 
 <footer class="controls">
   <button class="btn" id="btnPrev" aria-label="上一页" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
   <div class="pager" id="pager"><b>1</b> / 117</div>
+  <button class="toc-btn" id="btnAlbum" aria-label="相册预览" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3.5" y="3.5" width="7" height="7" rx="1"/><rect x="13.5" y="3.5" width="7" height="7" rx="1"/><rect x="3.5" y="13.5" width="7" height="7" rx="1"/><rect x="13.5" y="13.5" width="7" height="7" rx="1"/></svg><span>相册</span></button>
   <button class="toc-btn" id="btnToc" aria-label="回目录" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="18.5" cy="18" r="2.6" fill="currentColor" stroke="none"/></svg><span>目录</span></button>
   <button class="btn" id="btnNext" aria-label="下一页" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
 </footer>
+
+<div id="album">
+  <div class="album-head">
+    <div class="album-title">影像相册<span class="cnt">共 109 幅</span></div>
+    <button class="album-close" id="btnAlbumClose" aria-label="关闭相册" type="button">✕</button>
+  </div>
+  <div class="album-body" id="albumBody">
+<div class="album-sec">
+<div class="album-sec-title">香樟树<span class="cnt">58 幅</span></div>
+<div class="album-grid">
+<div class="album-cell" data-page="3"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/xuFBQ4XawP"><span class="pg">3</span></div>
+<div class="album-cell" data-page="4"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/ByP82eLmU3"><span class="pg">4</span></div>
+<div class="album-cell" data-page="5"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/mVLsJ1zAEq"><span class="pg">5</span></div>
+<div class="album-cell" data-page="6"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/Ft7cWBebFx"><span class="pg">6</span></div>
+<div class="album-cell" data-page="7"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/ZUPPUxLzID"><span class="pg">7</span></div>
+<div class="album-cell" data-page="8"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/HfMR2S0lJr"><span class="pg">8</span></div>
+<div class="album-cell" data-page="9"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/qMV5EbUQGD"><span class="pg">9</span></div>
+<div class="album-cell" data-page="10"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/ad4J2Qu8X7"><span class="pg">10</span></div>
+<div class="album-cell" data-page="11"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/HgQxcpB0VZ"><span class="pg">11</span></div>
+<div class="album-cell" data-page="12"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/tSpYO1iUib"><span class="pg">12</span></div>
+<div class="album-cell" data-page="13"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/9guc2M9UA5"><span class="pg">13</span></div>
+<div class="album-cell" data-page="14"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/QWLPI5Lo2s"><span class="pg">14</span></div>
+<div class="album-cell" data-page="15"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/yzl4O5Xwbm"><span class="pg">15</span></div>
+<div class="album-cell" data-page="16"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/EhrU2oCbft"><span class="pg">16</span></div>
+<div class="album-cell" data-page="17"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/YJ8vdUx40U"><span class="pg">17</span></div>
+<div class="album-cell" data-page="18"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/gAvJAWZiZ3"><span class="pg">18</span></div>
+<div class="album-cell" data-page="19"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/mwmUZ3ZDAf"><span class="pg">19</span></div>
+<div class="album-cell" data-page="20"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/8Gj9HdihRy"><span class="pg">20</span></div>
+<div class="album-cell" data-page="21"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/vxe3AUTgGF"><span class="pg">21</span></div>
+<div class="album-cell" data-page="22"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/HmxZbW0WVn"><span class="pg">22</span></div>
+<div class="album-cell" data-page="23"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/jOsDlob5Pl"><span class="pg">23</span></div>
+<div class="album-cell" data-page="24"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/PhKDi3UY6g"><span class="pg">24</span></div>
+<div class="album-cell" data-page="25"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/X3dUKQ9mNe"><span class="pg">25</span></div>
+<div class="album-cell" data-page="26"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/wWqi7hyhUw"><span class="pg">26</span></div>
+<div class="album-cell" data-page="27"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/SPTU7ouUws"><span class="pg">27</span></div>
+<div class="album-cell" data-page="28"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/2RBQfH5y3r"><span class="pg">28</span></div>
+<div class="album-cell" data-page="29"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/VwonPgwIVn"><span class="pg">29</span></div>
+<div class="album-cell" data-page="30"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/B64guFBzQv"><span class="pg">30</span></div>
+<div class="album-cell" data-page="31"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/hEcLS8FUcl"><span class="pg">31</span></div>
+<div class="album-cell" data-page="32"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/NJpTUUOYvi"><span class="pg">32</span></div>
+<div class="album-cell" data-page="33"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/VvklRJBp5O"><span class="pg">33</span></div>
+<div class="album-cell" data-page="34"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/0VhKyk5QXi"><span class="pg">34</span></div>
+<div class="album-cell" data-page="35"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/GVOMbphUdU"><span class="pg">35</span></div>
+<div class="album-cell" data-page="36"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/nQh9EBnBVo"><span class="pg">36</span></div>
+<div class="album-cell" data-page="37"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/WnWGFlQGHW"><span class="pg">37</span></div>
+<div class="album-cell" data-page="38"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/NtlkBDHbXi"><span class="pg">38</span></div>
+<div class="album-cell" data-page="39"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/xbVqmtfsW2"><span class="pg">39</span></div>
+<div class="album-cell" data-page="40"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/mKGP81DwIt"><span class="pg">40</span></div>
+<div class="album-cell" data-page="41"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/BnccrQM66c"><span class="pg">41</span></div>
+<div class="album-cell" data-page="42"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/eChvt43rIZ"><span class="pg">42</span></div>
+<div class="album-cell" data-page="43"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/y6WAKVf1Gh"><span class="pg">43</span></div>
+<div class="album-cell" data-page="44"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/mRfqY14bmm"><span class="pg">44</span></div>
+<div class="album-cell" data-page="45"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/raXf79ev0X"><span class="pg">45</span></div>
+<div class="album-cell" data-page="46"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/DNY8B6FZuT"><span class="pg">46</span></div>
+<div class="album-cell" data-page="47"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/lvg3CpNHNS"><span class="pg">47</span></div>
+<div class="album-cell" data-page="48"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/SEMO9VDUBV"><span class="pg">48</span></div>
+<div class="album-cell" data-page="49"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/Ak6kj0SGV4"><span class="pg">49</span></div>
+<div class="album-cell" data-page="50"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/FA4WrhfL95"><span class="pg">50</span></div>
+<div class="album-cell" data-page="51"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/fWhGsPGB9i"><span class="pg">51</span></div>
+<div class="album-cell" data-page="52"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/2aQImUdLCu"><span class="pg">52</span></div>
+<div class="album-cell" data-page="53"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/5VzD2pEX8U"><span class="pg">53</span></div>
+<div class="album-cell" data-page="54"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/oWIsBQ4bwF"><span class="pg">54</span></div>
+<div class="album-cell" data-page="55"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/U9Pa2V7cGD"><span class="pg">55</span></div>
+<div class="album-cell" data-page="56"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/eZDLrp3mLK"><span class="pg">56</span></div>
+<div class="album-cell" data-page="57"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/20JcgJzUx5"><span class="pg">57</span></div>
+<div class="album-cell" data-page="58"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/sMLKZFLrhG"><span class="pg">58</span></div>
+<div class="album-cell" data-page="59"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/Wd7ZXyLpzT"><span class="pg">59</span></div>
+<div class="album-cell" data-page="60"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/60vUrwaHdK"><span class="pg">60</span></div>
+</div></div>
+<div class="album-sec">
+<div class="album-sec-title">雷击香樟树<span class="cnt">25 幅</span></div>
+<div class="album-grid">
+<div class="album-cell" data-page="62"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/xbKAPqyUrz"><span class="pg">62</span></div>
+<div class="album-cell" data-page="63"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/p7iaCljaqW"><span class="pg">63</span></div>
+<div class="album-cell" data-page="64"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/uQU0Glj3Nf"><span class="pg">64</span></div>
+<div class="album-cell" data-page="65"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/biWVfQqriD"><span class="pg">65</span></div>
+<div class="album-cell" data-page="66"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/gHFT2ZbUly"><span class="pg">66</span></div>
+<div class="album-cell" data-page="67"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/mVy2ntcJZu"><span class="pg">67</span></div>
+<div class="album-cell" data-page="68"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/SsVYMFSOiK"><span class="pg">68</span></div>
+<div class="album-cell" data-page="69"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/yLNSR2JUeX"><span class="pg">69</span></div>
+<div class="album-cell" data-page="70"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/USJEozh4by"><span class="pg">70</span></div>
+<div class="album-cell" data-page="71"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/vUBrECAd4B"><span class="pg">71</span></div>
+<div class="album-cell" data-page="72"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/wVq55d2b69"><span class="pg">72</span></div>
+<div class="album-cell" data-page="73"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/HNbL8vNRV4"><span class="pg">73</span></div>
+<div class="album-cell" data-page="74"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/mwpcqVsEQV"><span class="pg">74</span></div>
+<div class="album-cell" data-page="75"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/6e2RHQGGQS"><span class="pg">75</span></div>
+<div class="album-cell" data-page="76"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/FU8QBC5Hu7"><span class="pg">76</span></div>
+<div class="album-cell" data-page="77"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/zMjaRWvtHG"><span class="pg">77</span></div>
+<div class="album-cell" data-page="78"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/j2NG3Fdsi5"><span class="pg">78</span></div>
+<div class="album-cell" data-page="79"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/UwV4pQAJoq"><span class="pg">79</span></div>
+<div class="album-cell" data-page="80"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/hTzvFtlhQE"><span class="pg">80</span></div>
+<div class="album-cell" data-page="81"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/2GcWoaIvJu"><span class="pg">81</span></div>
+<div class="album-cell" data-page="82"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/ysk572eHrL"><span class="pg">82</span></div>
+<div class="album-cell" data-page="83"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/S9DmLBjsKT"><span class="pg">83</span></div>
+<div class="album-cell" data-page="84"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/JFKXVpBw8m"><span class="pg">84</span></div>
+<div class="album-cell" data-page="85"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/mxuqrsCPSR"><span class="pg">85</span></div>
+<div class="album-cell" data-page="86"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/rh1xz2i350"><span class="pg">86</span></div>
+</div></div>
+<div class="album-sec">
+<div class="album-sec-title">侧柏树<span class="cnt">8 幅</span></div>
+<div class="album-grid">
+<div class="album-cell" data-page="88"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/oTLOrwFKoE"><span class="pg">88</span></div>
+<div class="album-cell" data-page="89"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/HxUHftUUmQ"><span class="pg">89</span></div>
+<div class="album-cell" data-page="90"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/zLOJGIEvZQ"><span class="pg">90</span></div>
+<div class="album-cell" data-page="91"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/QrZhlyVUcx"><span class="pg">91</span></div>
+<div class="album-cell" data-page="92"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/bU7kznyozD"><span class="pg">92</span></div>
+<div class="album-cell" data-page="93"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/Ztl4jNJaBM"><span class="pg">93</span></div>
+<div class="album-cell" data-page="94"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/nJd7if6bFS"><span class="pg">94</span></div>
+<div class="album-cell" data-page="95"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/8d1qUXxgYN"><span class="pg">95</span></div>
+</div></div>
+<div class="album-sec">
+<div class="album-sec-title">香樟兜<span class="cnt">7 幅</span></div>
+<div class="album-grid">
+<div class="album-cell" data-page="97"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/AdrZ7m5APY"><span class="pg">97</span></div>
+<div class="album-cell" data-page="98"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/lX8UiUruXw"><span class="pg">98</span></div>
+<div class="album-cell" data-page="99"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/qyYK4aIGhu"><span class="pg">99</span></div>
+<div class="album-cell" data-page="100"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/dY1IqHz6vW"><span class="pg">100</span></div>
+<div class="album-cell" data-page="101"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/VUXC2k46ca"><span class="pg">101</span></div>
+<div class="album-cell" data-page="102"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/Uc1UaJHGwH"><span class="pg">102</span></div>
+<div class="album-cell" data-page="103"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/SIxbJinXHs"><span class="pg">103</span></div>
+</div></div>
+<div class="album-sec">
+<div class="album-sec-title">金桂<span class="cnt">11 幅</span></div>
+<div class="album-grid">
+<div class="album-cell" data-page="105"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/VqziNNUPXv"><span class="pg">105</span></div>
+<div class="album-cell" data-page="106"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/N8AvxcUOEj"><span class="pg">106</span></div>
+<div class="album-cell" data-page="107"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/U4EkCejNY7"><span class="pg">107</span></div>
+<div class="album-cell" data-page="108"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/8uUpFJi65A"><span class="pg">108</span></div>
+<div class="album-cell" data-page="109"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/Z56otxNQbM"><span class="pg">109</span></div>
+<div class="album-cell" data-page="110"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/SRwluNNkbP"><span class="pg">110</span></div>
+<div class="album-cell" data-page="111"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/U6FnrY1xb6"><span class="pg">111</span></div>
+<div class="album-cell" data-page="112"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/iiLKUFnmcm"><span class="pg">112</span></div>
+<div class="album-cell" data-page="113"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/shP646Ire1"><span class="pg">113</span></div>
+<div class="album-cell" data-page="114"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/x08ZQzNxWm"><span class="pg">114</span></div>
+<div class="album-cell" data-page="115"><img loading="lazy" decoding="async" alt="" src="https://aka.doubaocdn.com/s/I85nP2IuyH"><span class="pg">115</span></div>
+</div></div>
+  </div>
+</div>
 
 <script>
 (function(){
@@ -134,6 +291,10 @@ var pager = document.getElementById('pager');
 var btnPrev = document.getElementById('btnPrev');
 var btnNext = document.getElementById('btnNext');
 var btnToc = document.getElementById('btnToc');
+var btnAlbum = document.getElementById('btnAlbum');
+var btnAlbumClose = document.getElementById('btnAlbumClose');
+var album = document.getElementById('album');
+var albumBody = document.getElementById('albumBody');
 var loader = document.getElementById('loader');
 var toast = document.getElementById('toast');
 
@@ -483,6 +644,20 @@ book.addEventListener('click', function(e){
 btnPrev.addEventListener('click', goPrev);
 btnNext.addEventListener('click', goNext);
 btnToc.addEventListener('click', function(){ jumpTo(1); });
+
+/* ============ 相册 ============ */
+function openAlbum(){ album.classList.add('show'); albumBody.scrollTop = 0; }
+function closeAlbum(){ album.classList.remove('show'); }
+btnAlbum.addEventListener('click', openAlbum);
+btnAlbumClose.addEventListener('click', closeAlbum);
+album.addEventListener('click', function(e){
+  var t = e.target;
+  while(t && t !== album && !(t.classList && t.classList.contains('album-cell'))) t = t.parentNode;
+  if(!t || t === album) return;
+  var p = parseInt(t.getAttribute('data-page'), 10);
+  closeAlbum();
+  jumpTo(p);
+});
 document.addEventListener('keydown', function(e){
   if(e.key === 'ArrowRight') goNext();
   else if(e.key === 'ArrowLeft') goPrev();
