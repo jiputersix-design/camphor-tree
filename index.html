@@ -7,45 +7,27 @@
 <title>千年古树档案 · 古树图鉴</title>
 <link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@600;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
 <style>
-:root{--ink:#16261F;--ink-2:#1E352A;--ink-3:#0E1A14;--wood:#7A5C3E;--gold:#C9A24B;--gold-hi:#E6CD85;--paper:#F2EAD8;--paper-dim:rgba(242,234,216,.62);}
+:root{--ink:#16261F;--ink-2:#1E352A;--ink-3:#0E1A14;--gold:#C9A24B;--gold-hi:#E6CD85;--paper:#F2EAD8;--paper-dim:rgba(242,234,216,.62);}
 *{margin:0;padding:0;box-sizing:border-box;}
 html,body{height:100%;}
-body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;background:radial-gradient(140% 110% at 50% 0%, #264533 0%, var(--ink) 50%, var(--ink-3) 100%);color:var(--paper);overflow:hidden;position:fixed;inset:0;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;display:flex;flex-direction:column;}
+body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;background:radial-gradient(140% 110% at 50% 0%, #264533 0%, var(--ink) 50%, var(--ink-3) 100%);color:var(--paper);overflow:hidden;position:fixed;inset:0;overscroll-behavior:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;display:flex;flex-direction:column;touch-action:none;}
 #loader{position:fixed;inset:0;z-index:60;background:radial-gradient(130% 100% at 50% 0%, #24402F 0%, var(--ink) 52%, var(--ink-3) 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;transition:opacity .4s ease;}
 #loader.hide{opacity:0;pointer-events:none;}
 .loader-ring{width:52px;height:52px;border-radius:50%;border:1px solid rgba(201,162,75,.25);border-top-color:var(--gold);animation:spin 1s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 .loader-text{font-family:"Noto Serif SC",serif;color:var(--paper-dim);letter-spacing:.4em;font-size:13px;padding-left:.4em;}
-.stage{flex:1;display:flex;align-items:center;justify-content:center;perspective:1600px;-webkit-perspective:1600px;position:relative;min-height:0;z-index:1;}
-.book{position:relative;transform-style:preserve-3d;-webkit-transform-style:preserve-3d;opacity:0;transform:translateY(16px);transition:opacity .5s ease .05s, transform .5s ease .05s, width .35s ease, height .35s ease;filter:drop-shadow(0 18px 40px rgba(0,0,0,.5));}
+.stage{flex:1;display:flex;align-items:center;justify-content:center;position:relative;min-height:0;z-index:1;}
+.book{position:relative;opacity:0;transform:translateY(14px);transition:opacity .45s ease .05s, transform .45s ease .05s, width .3s ease, height .3s ease;box-shadow:0 22px 48px rgba(0,0,0,.5), 0 4px 14px rgba(0,0,0,.35);border-radius:6px;overflow:hidden;}
 .book.ready{opacity:1;transform:translateY(0);}
-.page{position:absolute;inset:0;transform-style:preserve-3d;-webkit-transform-style:preserve-3d;z-index:1;cursor:pointer;will-change:transform,opacity;opacity:1;}
+.page{position:absolute;inset:0;z-index:1;background:var(--ink-3);overflow:hidden;cursor:pointer;opacity:1;}
 .page.is-cur{z-index:3;}
-.page.is-flipping{z-index:6;}
-@keyframes flipFwd{
-  0%{transform:rotateY(0deg) translateZ(0px) scaleY(1);box-shadow:0 8px 28px rgba(0,0,0,.45);}
-  30%{transform:rotateY(-60deg) translateZ(18px) scaleY(1.014);box-shadow:-10px 16px 44px rgba(0,0,0,.5);}
-  100%{transform:rotateY(-180deg) translateZ(0px) scaleY(1);box-shadow:-18px 8px 30px rgba(0,0,0,.38);}
-}
-@keyframes flipBack{
-  0%{transform:rotateY(0deg) translateZ(0px) scaleY(1);box-shadow:0 8px 28px rgba(0,0,0,.45);}
-  30%{transform:rotateY(60deg) translateZ(18px) scaleY(1.014);box-shadow:10px 16px 44px rgba(0,0,0,.5);}
-  100%{transform:rotateY(180deg) translateZ(0px) scaleY(1);box-shadow:18px 8px 30px rgba(0,0,0,.38);}
-}
-.page.flip-fwd{animation:flipFwd .45s cubic-bezier(.33,.1,.27,1) forwards;transform-origin:left center;-webkit-transform-origin:left center;}
-.page.flip-back{animation:flipBack .45s cubic-bezier(.33,.1,.27,1) forwards;transform-origin:right center;-webkit-transform-origin:right center;}
-@keyframes pageIn{from{opacity:0;transform:scale(.965);}to{opacity:1;transform:scale(1);}}
-.page.page-in{animation:pageIn .28s ease-out;}
-.pg-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;background:var(--ink-3);}
-.pg-front{transform:rotateY(0);-webkit-transform:rotateY(0);}
-.pg-back{transform:rotateY(180deg);-webkit-transform:rotateY(180deg);}
-.photo{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;-webkit-user-drag:none;opacity:0;transition:opacity .35s ease;}
+.page.is-peer{z-index:2;}
+.page.shadow-lift{box-shadow:-6px 8px 22px rgba(0,0,0,.45);}
+@keyframes pageIn{from{opacity:0;transform:scale(.972);}to{opacity:1;transform:scale(1);}}
+.page.page-in{animation:pageIn .26s ease-out;}
+.photo{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;-webkit-user-drag:none;opacity:0;transition:opacity .3s ease;}
 .photo.loaded{opacity:1;}
-.pg-back{display:flex;align-items:center;justify-content:center;background:repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(122,92,62,.04) 3px, rgba(122,92,62,.04) 4px),repeating-linear-gradient(90deg, transparent, transparent 6px, rgba(122,92,62,.025) 6px, rgba(122,92,62,.025) 7px),radial-gradient(130% 100% at 50% 0%, #F5EEDD 0%, #E4D8BE 80%);}
-.pg-face::after{content:"";position:absolute;top:0;bottom:0;left:0;width:2px;background:linear-gradient(90deg, rgba(255,255,255,.3), rgba(255,255,255,0));pointer-events:none;z-index:5;}
-.back-mark{display:flex;flex-direction:column;align-items:center;gap:12px;color:#C9A24B;}
-.back-mark svg{opacity:.75;}
-.back-mark .back-no{font-family:"Noto Serif SC",serif;font-size:12px;letter-spacing:.35em;color:rgba(122,92,62,.7);}
+.paper-edge{position:absolute;top:0;bottom:0;left:0;width:3px;background:linear-gradient(90deg, rgba(255,255,255,.28), rgba(255,255,255,0));pointer-events:none;z-index:5;}
 .cover{position:absolute;inset:0;background:radial-gradient(140% 110% at 30% 10%, rgba(38,74,55,.85) 0%, transparent 55%),linear-gradient(168deg,#28553D 0%, #1B3126 58%, #11221A 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8% 6%;}
 .cover-frame{position:absolute;inset:5%;border:1px solid rgba(201,162,75,.5);pointer-events:none;}
 .cover-frame::after{content:"";position:absolute;inset:7px;border:1px solid rgba(201,162,75,.2);}
@@ -81,23 +63,22 @@ body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,-apple
 .backcover{position:absolute;inset:0;background:linear-gradient(168deg,#28553D 0%, #1B3126 58%, #11221A 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;text-align:center;}
 .backcover .the-end{font-family:"Noto Serif SC",serif;font-weight:900;font-size:clamp(26px,6.5vw,40px);color:var(--gold-hi);letter-spacing:.3em;padding-left:.3em;}
 .backcover .end-sub{font-size:11px;letter-spacing:.32em;color:var(--paper-dim);padding-left:.32em;font-weight:300;}
-.controls{flex:none;display:flex;align-items:center;justify-content:center;gap:18px;padding:calc(12px + env(safe-area-inset-bottom)) 0 18px;position:relative;z-index:2;}
-.btn{width:44px;height:44px;border-radius:50%;border:1px solid rgba(242,234,216,.3);background:rgba(242,234,216,.07);color:var(--paper);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s ease, border-color .2s ease, opacity .2s ease, transform .1s ease;}
+.controls{flex:none;display:flex;align-items:center;justify-content:center;gap:14px;padding:calc(12px + env(safe-area-inset-bottom)) 0 16px;position:relative;z-index:2;}
+.btn{width:42px;height:42px;border-radius:50%;border:1px solid rgba(242,234,216,.3);background:rgba(242,234,216,.07);color:var(--paper);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s ease, border-color .2s ease, opacity .2s ease, transform .1s ease;}
 .btn:hover{background:rgba(201,162,75,.2);border-color:rgba(201,162,75,.55);}
 .btn:active{transform:scale(.93);}
 .btn.disabled{opacity:.2;pointer-events:none;}
-.btn svg{width:19px;height:19px;}
-.pager{font-family:"Noto Serif SC",serif;font-size:13px;letter-spacing:.24em;color:var(--paper-dim);min-width:84px;text-align:center;font-variant-numeric:tabular-nums;}
+.btn svg{width:18px;height:18px;}
+.toc-btn{flex:none;height:42px;padding:0 16px;border-radius:999px;border:1px solid rgba(201,162,75,.45);background:rgba(242,234,216,.07);color:var(--gold-hi);display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;font-size:12px;letter-spacing:.2em;transition:background .2s ease, border-color .2s ease, opacity .2s ease, transform .1s ease;}
+.toc-btn:hover{background:rgba(201,162,75,.2);border-color:rgba(201,162,75,.55);}
+.toc-btn:active{transform:scale(.93);}
+.toc-btn.disabled{opacity:.25;pointer-events:none;}
+.toc-btn svg{width:15px;height:15px;flex:none;}
+.pager{font-family:"Noto Serif SC",serif;font-size:13px;letter-spacing:.2em;color:var(--paper-dim);min-width:78px;text-align:center;font-variant-numeric:tabular-nums;}
 .pager b{color:var(--gold-hi);font-weight:600;}
 #toast{position:fixed;top:calc(16px + env(safe-area-inset-top));left:0;right:0;text-align:center;z-index:40;opacity:0;transform:translateY(-8px);transition:opacity .45s ease, transform .45s ease;pointer-events:none;}
 #toast.show{opacity:1;transform:translateY(0);}
 #toast span{display:inline-block;font-size:11.5px;letter-spacing:.3em;padding-left:.3em;color:var(--paper);background:rgba(22,38,31,.7);border:1px solid rgba(201,162,75,.32);border-radius:999px;padding:9px 20px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
-.toc-btn{flex:none;width:auto;height:44px;padding:0 18px;border-radius:999px;border:1px solid rgba(201,162,75,.45);background:rgba(242,234,216,.07);color:var(--gold-hi);display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;font-size:12px;letter-spacing:.2em;padding-left:calc(.2em + 18px);transition:background .2s ease, border-color .2s ease, opacity .2s ease, transform .1s ease;}
-.toc-btn:hover{background:rgba(201,162,75,.2);border-color:rgba(201,162,75,.55);}
-.toc-btn:active{transform:scale(.93);}
-.toc-btn.disabled{opacity:.25;pointer-events:none;}
-.toc-btn svg{width:16px;height:16px;flex:none;}
-@media (prefers-reduced-motion: reduce){.page{animation-duration:.01s !important;}.loader-ring,.cover-hint{animation:none;}}
 </style>
 </head>
 <body>
@@ -151,14 +132,14 @@ var book = document.getElementById('book');
 var pager = document.getElementById('pager');
 var btnPrev = document.getElementById('btnPrev');
 var btnNext = document.getElementById('btnNext');
+var btnToc = document.getElementById('btnToc');
 var loader = document.getElementById('loader');
 var toast = document.getElementById('toast');
-var btnToc = document.getElementById('btnToc');
 
 var cur = 0;
 var animating = false;
-var RANGE = 2;              /* 滑动窗口：保留 cur±RANGE */
-var pageEls = {};           /* idx -> element */
+var RANGE = 2;
+var pageEls = {};
 
 /* ============ 音效 ============ */
 var audioCtx = null, audioUnlocked = false;
@@ -173,7 +154,7 @@ function initAudio(){
 function playFlipSound(){
   if(!audioCtx || audioCtx.state !== 'running') return;
   var t = audioCtx.currentTime, sr = audioCtx.sampleRate;
-  var dur = 0.3;
+  var dur = 0.28;
   var buf = audioCtx.createBuffer(1, Math.floor(sr * dur), sr);
   var data = buf.getChannelData(0);
   for(var i = 0; i < data.length; i++){
@@ -183,15 +164,15 @@ function playFlipSound(){
   }
   var src = audioCtx.createBufferSource(); src.buffer = buf;
   var bp = audioCtx.createBiquadFilter(); bp.type = 'bandpass';
-  bp.frequency.setValueAtTime(3200, t); bp.frequency.exponentialRampToValueAtTime(1400, t + dur); bp.Q.value = 0.7;
+  bp.frequency.setValueAtTime(3200, t); bp.frequency.exponentialRampToValueAtTime(1500, t + dur); bp.Q.value = 0.7;
   var g = audioCtx.createGain();
-  g.gain.setValueAtTime(0.12, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  g.gain.setValueAtTime(0.11, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
   src.connect(bp); bp.connect(g); g.connect(audioCtx.destination); src.start(t);
   var osc = audioCtx.createOscillator(); osc.type = 'sine';
-  osc.frequency.setValueAtTime(200, t + 0.15); osc.frequency.exponentialRampToValueAtTime(70, t + 0.25);
+  osc.frequency.setValueAtTime(190, t + 0.13); osc.frequency.exponentialRampToValueAtTime(65, t + 0.23);
   var og = audioCtx.createGain();
-  og.gain.setValueAtTime(0.0001, t + 0.15); og.gain.exponentialRampToValueAtTime(0.06, t + 0.16); og.gain.exponentialRampToValueAtTime(0.001, t + 0.27);
-  osc.connect(og); og.connect(audioCtx.destination); osc.start(t + 0.15); osc.stop(t + 0.28);
+  og.gain.setValueAtTime(0.0001, t + 0.13); og.gain.exponentialRampToValueAtTime(0.055, t + 0.14); og.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+  osc.connect(og); og.connect(audioCtx.destination); osc.start(t + 0.13); osc.stop(t + 0.26);
 }
 document.addEventListener('touchstart', initAudio, {passive:true, once:true});
 document.addEventListener('click', initAudio, {once:true});
@@ -228,19 +209,16 @@ function sectionHTML(i){
 function backcoverHTML(){
   return '<div class="backcover"><div class="the-end">完</div><div class="end-sub">千年古树档案 · 古树图鉴</div></div>';
 }
-function backMarkHTML(no){
-  return '<div class="back-mark"><svg width="30" height="30" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M20 6 C16 12 14 16 14 21 C14 27 17 32 20 34 C23 32 26 27 26 21 C26 16 24 12 20 6 Z"/><path d="M8 34 L32 34"/></svg><div class="back-no">' + no + '</div></div>';
-}
 
 function createPage(idx){
   var p = document.createElement('div');
   p.className = 'page';
   p.dataset.idx = idx;
-  var front = document.createElement('div');
-  front.className = 'pg-face pg-front';
   var t = PAGE_TYPES[idx];
-  if(t === 'cover') front.innerHTML = coverHTML();
-  else if(t === 'toc') front.innerHTML = tocHTML();
+  var inner = document.createElement('div');
+  inner.className = 'page-inner';
+  if(t === 'cover') inner.innerHTML = coverHTML();
+  else if(t === 'toc') inner.innerHTML = tocHTML();
   else if(t === 'photo'){
     var img = document.createElement('img');
     img.className = 'photo';
@@ -248,19 +226,17 @@ function createPage(idx){
     img.decoding = 'async';
     img.onload = function(){ img.classList.add('loaded'); };
     img.src = SECTIONS[PHOTO_INDEX[idx].sec].urls[PHOTO_INDEX[idx].img];
-    front.appendChild(img);
+    inner.appendChild(img);
   }
-  else if(t === 'backcover') front.innerHTML = backcoverHTML();
-  else front.innerHTML = sectionHTML(SECTION_PAGES.indexOf(idx));
-  var back = document.createElement('div');
-  back.className = 'pg-face pg-back';
-  back.innerHTML = backMarkHTML(pad(idx + 1));
-  p.appendChild(front);
-  p.appendChild(back);
+  else if(t === 'backcover') inner.innerHTML = backcoverHTML();
+  else inner.innerHTML = sectionHTML(SECTION_PAGES.indexOf(idx));
+  var edge = document.createElement('div');
+  edge.className = 'paper-edge';
+  p.appendChild(inner);
+  p.appendChild(edge);
   return p;
 }
 
-/* 滑动窗口：确保 idx±RANGE 存在，销毁范围外 */
 function syncRange(idx){
   var i, k;
   for(i = idx - RANGE; i <= idx + RANGE; i++){
@@ -275,22 +251,21 @@ function syncRange(idx){
     var n = parseInt(k, 10);
     if(Math.abs(n - idx) > RANGE){
       var el = pageEls[k];
+      el.style.transform = '';
+      el.style.opacity = '';
       if(el.parentNode) el.parentNode.removeChild(el);
       delete pageEls[k];
     }
   }
 }
-
-/* 清理所有页面 */
 function clearAll(){
   for(var k in pageEls){
     var el = pageEls[k];
+    el.style.transform = ''; el.style.opacity = '';
     if(el.parentNode) el.parentNode.removeChild(el);
     delete pageEls[k];
   }
 }
-
-/* 设置当前页状态 */
 function setCur(idx, animateIn){
   cur = idx;
   clearAll();
@@ -300,6 +275,9 @@ function setCur(idx, animateIn){
   if(animateIn) el.classList.add('page-in');
   resize();
   updateUI();
+}
+function bookWidth(){
+  return book.getBoundingClientRect().width;
 }
 
 /* ============ 尺寸 ============ */
@@ -315,64 +293,57 @@ function pageRatio(idx){
 function resize(){
   var ratio = pageRatio(cur);
   var w = window.innerWidth, h = window.innerHeight;
-  var bh = Math.min(h * 0.78, 860);
+  var bh = Math.min(h * 0.8, 900);
   var bw = bh * ratio;
-  if(bw > w * 0.9){ bw = w * 0.9; bh = bw / ratio; }
+  if(bw > w * 0.92){ bw = w * 0.92; bh = bw / ratio; }
   book.style.width = bw + 'px';
   book.style.height = bh + 'px';
 }
 
-/* ============ 翻页 ============ */
-function goNext(){
-  if(animating || cur >= TOTAL - 1) return;
-  animating = true;
+/* ============ 翻页（滑动跟随） ============ */
+function commitFlip(dir){
+  /* dir=1 下一页, dir=-1 上一页；A 滑出，B 滑入 */
+  var target = cur + dir;
+  if(target < 0 || target >= TOTAL) return;
+  var A = pageEls[cur], B = pageEls[target];
+  var w = bookWidth();
   playFlipSound();
-  syncRange(cur + 1);
-  var el = pageEls[cur];
-  el.classList.add('is-flipping', 'flip-fwd');
-  var done = false;
-  var onEnd = function(e){
-    if(done) return;
-    if(e && e.animationName && e.animationName !== 'flipFwd') return;
-    done = true;
-    el.removeEventListener('animationend', onEnd);
-    setCur(cur + 1, false);
-    animating = false;
-  };
-  el.addEventListener('animationend', onEnd);
-  setTimeout(function(){ if(animating) onEnd(null); }, 650);
-}
-function goPrev(){
-  if(animating || cur <= 0) return;
+  A.style.transition = 'transform .22s ease-out, opacity .22s ease-out';
+  A.style.transform = 'translateX(' + (-dir * w * 1.06) + 'px)';
+  A.style.opacity = '0';
+  A.classList.add('shadow-lift');
+  B.style.transition = 'none';
+  B.style.transform = 'translateX(' + (dir * w) + 'px)';
+  B.style.opacity = '1';
+  B.classList.add('is-peer');
+  void B.offsetWidth;
+  B.style.transition = 'transform .22s ease-out';
+  B.style.transform = 'translateX(0)';
   animating = true;
-  playFlipSound();
-  syncRange(cur - 1);
-  var el = pageEls[cur];
-  el.classList.add('is-flipping', 'flip-back');
-  var done = false;
-  var onEnd = function(e){
-    if(done) return;
-    if(e && e.animationName && e.animationName !== 'flipBack') return;
-    done = true;
-    el.removeEventListener('animationend', onEnd);
-    setCur(cur - 1, false);
+  setTimeout(function(){
+    A.style.transition = ''; A.style.transform = ''; A.style.opacity = ''; A.classList.remove('shadow-lift');
+    B.classList.remove('is-peer');
+    setCur(target, false);
     animating = false;
-  };
-  el.addEventListener('animationend', onEnd);
-  setTimeout(function(){ if(animating) onEnd(null); }, 650);
+  }, 240);
 }
-/* 目录/章节跳转 */
+function goNext(){ if(!animating) commitFlip(1); }
+function goPrev(){ if(!animating) commitFlip(-1); }
+
 function jumpTo(target){
   if(animating || target === cur || target < 0 || target >= TOTAL) return;
-  animating = true;
+  var A = pageEls[cur];
+  var dir = target > cur ? 1 : -1;
+  var w = bookWidth();
   playFlipSound();
-  var el = pageEls[cur];
-  var dir = target > cur ? 'flip-fwd' : 'flip-back';
-  el.classList.add('is-flipping', dir);
+  A.style.transition = 'transform .2s ease-in, opacity .2s ease-in';
+  A.style.transform = 'translateX(' + (-dir * w * 1.06) + 'px)';
+  A.style.opacity = '0';
+  animating = true;
   setTimeout(function(){
     setCur(target, true);
     animating = false;
-  }, 300);
+  }, 210);
 }
 function updateUI(){
   pager.innerHTML = '<b>' + (cur + 1) + '</b> / ' + TOTAL;
@@ -381,27 +352,84 @@ function updateUI(){
   btnToc.classList.toggle('disabled', cur === 1 || cur === 0);
 }
 
-/* ============ 交互 ============ */
-var startX = 0, startY = 0, moved = false, suppressClick = false;
+/* ============ 触摸手势 ============ */
+var sx = 0, sy = 0, dragging = false, dragDir = 0, suppressClick = false;
+function dragUpdate(dx){
+  if(!dragging) return;
+  var A = pageEls[cur];
+  var B = pageEls[cur + dragDir];
+  var w = bookWidth();
+  var clamped = dx;
+  if(dragDir === 1) clamped = Math.min(dx, 0);
+  else clamped = Math.max(dx, 0);
+  A.style.transition = 'none';
+  A.style.transform = 'translateX(' + clamped + 'px)';
+  A.classList.add('shadow-lift');
+  if(B){
+    B.style.transition = 'none';
+    B.style.opacity = '1';
+    B.classList.add('is-peer');
+    B.style.transform = 'translateX(' + (dragDir * w + clamped) + 'px)';
+  }
+}
+function dragEnd(dx){
+  if(!dragging) return;
+  dragging = false;
+  var A = pageEls[cur];
+  var B = pageEls[cur + dragDir];
+  var w = bookWidth();
+  var threshold = Math.max(w * 0.2, 48);
+  if(Math.abs(dx) > threshold && B){
+    commitFlip(dragDir);
+  } else {
+    A.style.transition = 'transform .18s ease-out';
+    A.style.transform = '';
+    A.classList.remove('shadow-lift');
+    if(B){
+      B.style.transition = 'transform .18s ease-out';
+      B.style.transform = '';
+      B.style.opacity = '';
+      B.classList.remove('is-peer');
+    }
+  }
+}
 book.addEventListener('touchstart', function(e){
-  startX = e.touches[0].clientX; startY = e.touches[0].clientY; moved = false;
+  if(animating) return;
+  sx = e.touches[0].clientX; sy = e.touches[0].clientY;
 }, {passive:true});
 book.addEventListener('touchmove', function(e){
-  var dx = e.touches[0].clientX - startX, dy = e.touches[0].clientY - startY;
-  if(Math.abs(dx) > 8 || Math.abs(dy) > 8) moved = true;
-  if(moved && Math.abs(dx) > Math.abs(dy)) e.preventDefault();
+  if(animating) return;
+  var dx = e.touches[0].clientX - sx;
+  var dy = e.touches[0].clientY - sy;
+  if(!dragging && Math.abs(dx) > 7 && Math.abs(dx) > Math.abs(dy)){
+    dragging = true;
+    dragDir = dx < 0 ? 1 : -1;
+    var target = cur + dragDir;
+    if(target < 0 || target >= TOTAL){ dragging = false; return; }
+    if(!pageEls[target]) syncRange(target);
+  }
+  if(dragging){
+    e.preventDefault();
+    dragUpdate(dx);
+  }
 }, {passive:false});
 book.addEventListener('touchend', function(e){
-  if(!moved) return;
-  var dx = e.changedTouches[0].clientX - startX;
-  if(Math.abs(dx) > 40){
-    suppressClick = true;
-    if(dx < 0) goNext(); else goPrev();
-    setTimeout(function(){ suppressClick = false; }, 350);
+  if(!dragging) return;
+  var dx = e.changedTouches[0].clientX - sx;
+  suppressClick = true;
+  dragEnd(dx);
+  setTimeout(function(){ suppressClick = false; }, 320);
+}, {passive:true});
+book.addEventListener('touchcancel', function(){
+  if(dragging){
+    dragEnd(0);
+    suppressClick = false;
   }
 }, {passive:true});
+
+/* 点击翻页 & 目录跳转 */
 book.addEventListener('click', function(e){
-  if(suppressClick) return;
+  if(suppressClick || animating) return;
   var tocItem = e.target.closest('.toc-item');
   if(tocItem){
     var si = parseInt(tocItem.getAttribute('data-sec'), 10);
@@ -427,7 +455,6 @@ document.addEventListener('keydown', function(e){
 });
 window.addEventListener('resize', resize);
 
-/* ============ 启动：立即渲染封面，无需等待图片 ============ */
 function start(){
   setCur(0, true);
   book.classList.add('ready');
