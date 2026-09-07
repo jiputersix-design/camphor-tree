@@ -469,6 +469,10 @@ function start(){
 
 /* 容错：若预加载回调异常，5秒后仍启动 */
 setTimeout(start, 5000);
+window.onerror = function(msg, src, line){
+  var el = document.getElementById('loaderNum');
+  if(el) el.textContent = 'ERR: ' + msg + ' L' + line;
+};
 preloadKey();
 })();
 </script>
