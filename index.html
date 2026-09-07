@@ -19,10 +19,11 @@ body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,-apple
 .stage{flex:1;display:flex;align-items:center;justify-content:center;position:relative;min-height:0;z-index:1;}
 .book{position:relative;opacity:0;transform:translateY(14px);transition:opacity .45s ease .05s, transform .45s ease .05s, width .3s ease, height .3s ease;box-shadow:0 22px 48px rgba(0,0,0,.5), 0 4px 14px rgba(0,0,0,.35);border-radius:6px;overflow:hidden;}
 .book.ready{opacity:1;transform:translateY(0);}
-.page{position:absolute;inset:0;z-index:1;background:var(--ink-3);overflow:hidden;cursor:pointer;opacity:1;}
+.page{position:absolute;inset:0;z-index:1;background:var(--ink-3);overflow:hidden;cursor:pointer;opacity:1;will-change:transform;}
 .page.is-cur{z-index:3;}
 .page.is-peer{z-index:2;}
-.page.shadow-lift{box-shadow:-6px 8px 22px rgba(0,0,0,.45);}
+.page.is-flipping{z-index:6;box-shadow:0 14px 40px rgba(0,0,0,.45);}
+.page-inner{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;}
 @keyframes pageIn{from{opacity:0;transform:scale(.972);}to{opacity:1;transform:scale(1);}}
 .page.page-in{animation:pageIn .26s ease-out;}
 .photo{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;-webkit-user-drag:none;opacity:0;transition:opacity .3s ease;}
@@ -78,7 +79,7 @@ body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,-apple
 .pager b{color:var(--gold-hi);font-weight:600;}
 #toast{position:fixed;top:calc(16px + env(safe-area-inset-top));left:0;right:0;text-align:center;z-index:40;opacity:0;transform:translateY(-8px);transition:opacity .45s ease, transform .45s ease;pointer-events:none;}
 #toast.show{opacity:1;transform:translateY(0);}
-#toast span{display:inline-block;font-size:11.5px;letter-spacing:.3em;padding-left:.3em;color:var(--paper);background:rgba(22,38,31,.7);border:1px solid rgba(201,162,75,.32);border-radius:999px;padding:9px 20px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
+#toast span{display:inline-block;font-size:11.5px;letter-spacing:.3em;padding-left:.3em;color:var(--paper);background:rgba(22,38,31,.82);border:1px solid rgba(201,162,75,.32);border-radius:999px;padding:9px 20px;}
 </style>
 </head>
 <body>
@@ -300,50 +301,72 @@ function resize(){
   book.style.height = bh + 'px';
 }
 
-/* ============ 翻页（滑动跟随） ============ */
-function commitFlip(dir){
-  /* dir=1 下一页, dir=-1 上一页；A 滑出，B 滑入 */
-  var target = cur + dir;
-  if(target < 0 || target >= TOTAL) return;
-  var A = pageEls[cur], B = pageEls[target];
-  var w = bookWidth();
-  playFlipSound();
-  A.style.transition = 'transform .22s ease-out, opacity .22s ease-out';
-  A.style.transform = 'translateX(' + (-dir * w * 1.06) + 'px)';
-  A.style.opacity = '0';
-  A.classList.add('shadow-lift');
-  B.style.transition = 'none';
-  B.style.transform = 'translateX(' + (dir * w) + 'px)';
-  B.style.opacity = '1';
-  B.classList.add('is-peer');
-  void B.offsetWidth;
-  B.style.transition = 'transform .22s ease-out';
-  B.style.transform = 'translateX(0)';
+/* ============ 翻页（3D 跟手） ============ */
+function finishFlip(dir, A, B){
   animating = true;
-  setTimeout(function(){
-    A.style.transition = ''; A.style.transform = ''; A.style.opacity = ''; A.classList.remove('shadow-lift');
-    B.classList.remove('is-peer');
-    setCur(target, false);
+  var fired = false;
+  function cleanup(){
+    if(fired) return;
+    fired = true;
     animating = false;
-  }, 240);
+    A.style.transition = ''; A.style.transform = ''; A.style.transformOrigin = '';
+    A.classList.remove('is-flipping');
+    if(B) B.classList.remove('is-peer');
+    setCur(cur + dir, false);
+  }
+  var onEnd = function(ev){
+    if(ev && ev.propertyName && ev.propertyName !== 'transform') return;
+    A.removeEventListener('transitionend', onEnd);
+    cleanup();
+  };
+  A.addEventListener('transitionend', onEnd);
+  setTimeout(cleanup, 430);
 }
-function goNext(){ if(!animating) commitFlip(1); }
-function goPrev(){ if(!animating) commitFlip(-1); }
-
+function goNext(){
+  if(animating || cur >= TOTAL - 1) return;
+  playFlipSound();
+  syncRange(cur + 1);
+  var A = pageEls[cur], B = pageEls[cur + 1];
+  A.classList.add('is-flipping');
+  A.style.transition = 'none';
+  A.style.transformOrigin = 'left center';
+  A.style.transform = 'rotateY(0deg)';
+  void A.offsetWidth;
+  A.style.transition = 'transform .3s cubic-bezier(.33,.1,.27,1)';
+  A.style.transform = 'rotateY(-180deg)';
+  finishFlip(1, A, B);
+}
+function goPrev(){
+  if(animating || cur <= 0) return;
+  playFlipSound();
+  syncRange(cur - 1);
+  var A = pageEls[cur], B = pageEls[cur - 1];
+  A.classList.add('is-flipping');
+  A.style.transition = 'none';
+  A.style.transformOrigin = 'right center';
+  A.style.transform = 'rotateY(0deg)';
+  void A.offsetWidth;
+  A.style.transition = 'transform .3s cubic-bezier(.33,.1,.27,1)';
+  A.style.transform = 'rotateY(180deg)';
+  finishFlip(-1, A, B);
+}
 function jumpTo(target){
   if(animating || target === cur || target < 0 || target >= TOTAL) return;
+  playFlipSound();
   var A = pageEls[cur];
   var dir = target > cur ? 1 : -1;
-  var w = bookWidth();
-  playFlipSound();
-  A.style.transition = 'transform .2s ease-in, opacity .2s ease-in';
-  A.style.transform = 'translateX(' + (-dir * w * 1.06) + 'px)';
-  A.style.opacity = '0';
+  A.classList.add('is-flipping');
+  A.style.transition = 'none';
+  A.style.transformOrigin = dir === 1 ? 'left center' : 'right center';
+  A.style.transform = 'rotateY(0deg)';
+  void A.offsetWidth;
+  A.style.transition = 'transform .2s ease-in';
+  A.style.transform = 'rotateY(' + (dir * 180) + 'deg)';
   animating = true;
   setTimeout(function(){
-    setCur(target, true);
     animating = false;
-  }, 210);
+    setCur(target, true);
+  }, 215);
 }
 function updateUI(){
   pager.innerHTML = '<b>' + (cur + 1) + '</b> / ' + TOTAL;
@@ -352,25 +375,22 @@ function updateUI(){
   btnToc.classList.toggle('disabled', cur === 1 || cur === 0);
 }
 
-/* ============ 触摸手势 ============ */
-var sx = 0, sy = 0, dragging = false, dragDir = 0, suppressClick = false;
+/* ============ 手势（Pointer：手机触摸 + 电脑鼠标通用） ============ */
+var sx = 0, sy = 0, dragging = false, dragDir = 0, suppressClick = false, pointerId = null;
 function dragUpdate(dx){
   if(!dragging) return;
   var A = pageEls[cur];
   var B = pageEls[cur + dragDir];
-  var w = bookWidth();
-  var clamped = dx;
-  if(dragDir === 1) clamped = Math.min(dx, 0);
-  else clamped = Math.max(dx, 0);
-  A.style.transition = 'none';
-  A.style.transform = 'translateX(' + clamped + 'px)';
-  A.classList.add('shadow-lift');
-  if(B){
-    B.style.transition = 'none';
-    B.style.opacity = '1';
-    B.classList.add('is-peer');
-    B.style.transform = 'translateX(' + (dragDir * w + clamped) + 'px)';
+  var deg;
+  if(dragDir === 1){
+    deg = Math.max(-78, Math.min(0, dx * 0.55));
+  } else {
+    deg = Math.min(78, Math.max(0, dx * 0.55));
   }
+  A.style.transition = 'none';
+  A.style.transformOrigin = dragDir === 1 ? 'left center' : 'right center';
+  A.style.transform = 'rotateY(' + deg + 'deg)';
+  if(B) B.classList.add('is-peer');
 }
 function dragEnd(dx){
   if(!dragging) return;
@@ -378,54 +398,68 @@ function dragEnd(dx){
   var A = pageEls[cur];
   var B = pageEls[cur + dragDir];
   var w = bookWidth();
-  var threshold = Math.max(w * 0.2, 48);
+  var threshold = Math.max(w * 0.16, 40);
   if(Math.abs(dx) > threshold && B){
-    commitFlip(dragDir);
+    A.style.transition = 'transform .28s cubic-bezier(.33,.1,.27,1)';
+    A.style.transform = 'rotateY(' + (dragDir * 180) + 'deg)';
+    finishFlip(dragDir, A, B);
   } else {
-    A.style.transition = 'transform .18s ease-out';
-    A.style.transform = '';
-    A.classList.remove('shadow-lift');
-    if(B){
-      B.style.transition = 'transform .18s ease-out';
-      B.style.transform = '';
-      B.style.opacity = '';
-      B.classList.remove('is-peer');
-    }
+    A.style.transition = 'transform .22s ease-out';
+    A.style.transform = 'rotateY(0deg)';
+    var fired = false;
+    var onEnd = function(ev){
+      if(fired) return;
+      if(ev && ev.propertyName && ev.propertyName !== 'transform') return;
+      fired = true;
+      A.removeEventListener('transitionend', onEnd);
+      A.style.transition = ''; A.style.transform = ''; A.style.transformOrigin = '';
+      A.classList.remove('is-flipping');
+      if(B) B.classList.remove('is-peer');
+    };
+    A.addEventListener('transitionend', onEnd);
+    setTimeout(function(){ if(!fired){ fired = true; A.style.transition=''; A.style.transform=''; A.style.transformOrigin=''; A.classList.remove('is-flipping'); if(B) B.classList.remove('is-peer'); } }, 300);
   }
 }
-book.addEventListener('touchstart', function(e){
-  if(animating) return;
-  sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+book.addEventListener('pointerdown', function(e){
+  if(animating || pointerId !== null) return;
+  pointerId = e.pointerId;
+  sx = e.clientX; sy = e.clientY;
 }, {passive:true});
-book.addEventListener('touchmove', function(e){
-  if(animating) return;
-  var dx = e.touches[0].clientX - sx;
-  var dy = e.touches[0].clientY - sy;
+book.addEventListener('pointermove', function(e){
+  if(e.pointerId !== pointerId || animating) return;
+  var dx = e.clientX - sx;
+  var dy = e.clientY - sy;
   if(!dragging && Math.abs(dx) > 7 && Math.abs(dx) > Math.abs(dy)){
     dragging = true;
     dragDir = dx < 0 ? 1 : -1;
     var target = cur + dragDir;
-    if(target < 0 || target >= TOTAL){ dragging = false; return; }
+    if(target < 0 || target >= TOTAL){ dragging = false; pointerId = null; return; }
     if(!pageEls[target]) syncRange(target);
+    pageEls[cur].classList.add('is-flipping');
   }
   if(dragging){
     e.preventDefault();
     dragUpdate(dx);
   }
 }, {passive:false});
-book.addEventListener('touchend', function(e){
+book.addEventListener('pointerup', function(e){
+  if(e.pointerId !== pointerId) return;
+  pointerId = null;
   if(!dragging) return;
-  var dx = e.changedTouches[0].clientX - sx;
+  var dx = e.clientX - sx;
   suppressClick = true;
   dragEnd(dx);
-  setTimeout(function(){ suppressClick = false; }, 320);
+  setTimeout(function(){ suppressClick = false; }, 340);
 }, {passive:true});
-book.addEventListener('touchcancel', function(){
+book.addEventListener('pointercancel', function(e){
+  if(e.pointerId !== pointerId) return;
+  pointerId = null;
   if(dragging){
     dragEnd(0);
     suppressClick = false;
   }
 }, {passive:true});
+book.addEventListener('dragstart', function(e){ e.preventDefault(); }, {passive:false});
 
 /* 点击翻页 & 目录跳转 */
 book.addEventListener('click', function(e){
