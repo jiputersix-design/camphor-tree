@@ -154,7 +154,8 @@ var SECTION_PAGES = []; /* 每分类章节页idx */
 var TOTAL = 2;
 SECTIONS.forEach(function(s, i){
   SECTION_PAGES.push(TOTAL);
-  TOTAL += 1 + s.count;
+  PAGE_TYPES.push('section');
+  TOTAL++;
   for(var j = 0; j < s.count; j++){
     PAGE_TYPES.push('photo');
     PHOTO_INDEX[TOTAL] = {sec:i, img:j};
