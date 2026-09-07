@@ -92,6 +92,11 @@ body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,-apple
 #toast{position:fixed;top:calc(16px + env(safe-area-inset-top));left:0;right:0;text-align:center;z-index:40;opacity:0;transform:translateY(-8px);transition:opacity .45s ease, transform .45s ease;pointer-events:none;}
 #toast.show{opacity:1;transform:translateY(0);}
 #toast span{display:inline-block;font-size:11.5px;letter-spacing:.3em;padding-left:.3em;color:var(--paper);background:rgba(22,38,31,.7);border:1px solid rgba(201,162,75,.32);border-radius:999px;padding:9px 20px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
+.toc-btn{position:fixed;top:calc(14px + env(safe-area-inset-top));right:16px;z-index:50;width:42px;height:42px;border-radius:50%;border:1px solid rgba(201,162,75,.45);background:rgba(22,38,31,.65);color:var(--gold-hi);display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);transition:background .2s ease, transform .1s ease, opacity .25s ease;box-shadow:0 4px 16px rgba(0,0,0,.3);}
+.toc-btn:hover{background:rgba(201,162,75,.25);}
+.toc-btn:active{transform:scale(.92);}
+.toc-btn.hidden{opacity:0;pointer-events:none;}
+.toc-btn svg{width:19px;height:19px;}
 @media (prefers-reduced-motion: reduce){.page{animation-duration:.01s !important;}.loader-ring,.cover-hint{animation:none;}}
 </style>
 </head>
@@ -102,6 +107,7 @@ body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,-apple
   <div class="loader-text">正在装订画册</div>
 </div>
 <div id="toast"><span>左右滑动 · 点击翻页 · 目录可跳转</span></div>
+<button class="toc-btn" id="btnToc" aria-label="回目录" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/><circle cx="18.5" cy="18" r="2.6" fill="currentColor" stroke="none"/></svg></button>
 
 <main class="stage"><div class="book" id="book"></div></main>
 
@@ -147,6 +153,7 @@ var btnPrev = document.getElementById('btnPrev');
 var btnNext = document.getElementById('btnNext');
 var loader = document.getElementById('loader');
 var toast = document.getElementById('toast');
+var btnToc = document.getElementById('btnToc');
 
 var cur = 0;
 var animating = false;
@@ -371,6 +378,7 @@ function updateUI(){
   pager.innerHTML = '<b>' + (cur + 1) + '</b> / ' + TOTAL;
   btnPrev.classList.toggle('disabled', cur <= 0);
   btnNext.classList.toggle('disabled', cur >= TOTAL - 1);
+  btnToc.classList.toggle('hidden', cur === 1 || cur === 0);
 }
 
 /* ============ 交互 ============ */
@@ -412,6 +420,7 @@ book.addEventListener('click', function(e){
 });
 btnPrev.addEventListener('click', goPrev);
 btnNext.addEventListener('click', goNext);
+btnToc.addEventListener('click', function(){ jumpTo(1); });
 document.addEventListener('keydown', function(e){
   if(e.key === 'ArrowRight') goNext();
   else if(e.key === 'ArrowLeft') goPrev();
