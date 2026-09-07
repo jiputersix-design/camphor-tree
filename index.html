@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="description" content="千年古树档案 · 五类古树全记录画册">
+<title>千年古树档案 · 古树图鉴</title>
+<link rel="stylesheet" href="https://miaoda.feishu.cn/fonts/css2?family=Noto+Serif+SC:wght@600;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap">
+<style>
+:root{
+  --ink:#16261F;--ink-2:#1E352A;--ink-3:#0E1A14;
+  --wood:#7A5C3E;--gold:#C9A24B;--gold-hi:#E6CD85;
+  --paper:#F2EAD8;--paper-dim:rgba(242,234,216,.62);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",system-ui,-apple-system,sans-serif;
+  background:radial-gradient(140% 110% at 50% 0%, #264533 0%, var(--ink) 50%, var(--ink-3) 100%);
+  color:var(--paper);
+  overflow:hidden;position:fixed;inset:0;overscroll-behavior:none;
+  -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;
+  -webkit-touch-callout:none;display:flex;flex-direction:column;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    repeating-linear-gradient(92deg, transparent 0, transparent 3px, rgba(0,0,0,.04) 3px, rgba(0,0,0,.04) 4px),
+    repeating-linear-gradient(88deg, transparent 0, transparent 5px, rgba(255,255,255,.015) 5px, rgba(255,255,255,.015) 6px);
+}
+#loader{position:fixed;inset:0;z-index:60;background:radial-gradient(130% 100% at 50% 0%, #24402F 0%, var(--ink) 52%, var(--ink-3) 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;transition:opacity .5s ease;}
+#loader.hide{opacity:0;pointer-events:none;}
+.loader-ring{width:52px;height:52px;border-radius:50%;border:1px solid rgba(201,162,75,.25);border-top-color:var(--gold);animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loader-text{font-family:"Noto Serif SC",serif;color:var(--paper-dim);letter-spacing:.4em;font-size:13px;padding-left:.4em;}
+.loader-num{color:var(--gold);font-family:"Noto Serif SC",serif;letter-spacing:.2em;font-size:11px;}
+.stage{flex:1;display:flex;align-items:center;justify-content:center;perspective:1800px;-webkit-perspective:1800px;position:relative;min-height:0;z-index:1;}
+.book{position:relative;transform-style:preserve-3d;-webkit-transform-style:preserve-3d;opacity:0;transform:translateY(16px);transition:opacity .6s ease .1s, transform .6s ease .1s, width .4s ease, height .4s ease;filter:drop-shadow(0 24px 48px rgba(0,0,0,.55));}
+.book.ready{opacity:1;transform:translateY(0);}
+.page{position:absolute;inset:0;transform-style:preserve-3d;-webkit-transform-style:preserve-3d;z-index:1;cursor:pointer;will-change:transform, opacity;opacity:1;transition:opacity .18s ease;}
+.page.is-cur{z-index:3;}
+.page.is-flipping{z-index:6;}
+.page.is-done{z-index:0;opacity:0;pointer-events:none;}
+@keyframes flipFwd{
+  0%{transform:rotateY(0deg) translateZ(0px) scaleY(1);box-shadow:0 10px 36px rgba(0,0,0,.5);}
+  25%{transform:rotateY(-45deg) translateZ(22px) scaleY(1.018);box-shadow:-10px 18px 52px rgba(0,0,0,.55);}
+  55%{transform:rotateY(-100deg) translateZ(14px) scaleY(1.012);box-shadow:-18px 14px 48px rgba(0,0,0,.5);}
+  100%{transform:rotateY(-180deg) translateZ(0px) scaleY(1);box-shadow:-22px 8px 38px rgba(0,0,0,.4);}
+}
+@keyframes flipBack{
+  0%{transform:rotateY(0deg) translateZ(0px) scaleY(1);box-shadow:0 10px 36px rgba(0,0,0,.5);}
+  25%{transform:rotateY(45deg) translateZ(22px) scaleY(1.018);box-shadow:10px 18px 52px rgba(0,0,0,.55);}
+  55%{transform:rotateY(100deg) translateZ(14px) scaleY(1.012);box-shadow:18px 14px 48px rgba(0,0,0,.5);}
+  100%{transform:rotateY(180deg) translateZ(0px) scaleY(1);box-shadow:22px 8px 38px rgba(0,0,0,.4);}
+}
+.page.flip-fwd{animation:flipFwd .5s cubic-bezier(.32,.08,.28,1) forwards;transform-origin:left center;-webkit-transform-origin:left center;}
+.page.flip-back{animation:flipBack .5s cubic-bezier(.32,.08,.28,1) forwards;transform-origin:right center;-webkit-transform-origin:right center;}
+.pg-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden;background:var(--ink-3);}
+.pg-front{transform:rotateY(0);-webkit-transform:rotateY(0);}
+.pg-back{transform:rotateY(180deg);-webkit-transform:rotateY(180deg);}
+.photo{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;-webkit-user-drag:none;}
+.pg-back{display:flex;align-items:center;justify-content:center;background:repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(122,92,62,.04) 3px, rgba(122,92,62,.04) 4px),repeating-linear-gradient(90deg, transparent, transparent 6px, rgba(122,92,62,.025) 6px, rgba(122,92,62,.025) 7px),radial-gradient(130% 100% at 50% 0%, #F5EEDD 0%, #E4D8BE 80%);}
+.pg-face::after{content:"";position:absolute;top:0;bottom:0;left:0;width:2px;background:linear-gradient(90deg, rgba(255,255,255,.35), rgba(255,255,255,0));pointer-events:none;z-index:5;}
+.back-mark{display:flex;flex-direction:column;align-items:center;gap:12px;color:#C9A24B;}
+.back-mark svg{opacity:.75;}
+.back-mark .back-no{font-family:"Noto Serif SC",serif;font-size:12px;letter-spacing:.35em;color:rgba(122,92,62,.7);}
+/* 封面 */
+.cover{position:absolute;inset:0;background:radial-gradient(140% 110% at 30% 10%, rgba(38,74,55,.85) 0%, transparent 55%),linear-gradient(168deg,#28553D 0%, #1B3126 58%, #11221A 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8% 6%;}
+.cover-frame{position:absolute;inset:5%;border:1px solid rgba(201,162,75,.5);pointer-events:none;}
+.cover-frame::after{content:"";position:absolute;inset:7px;border:1px solid rgba(201,162,75,.2);}
+.cover-diamond{width:8px;height:8px;margin-bottom:20px;background:var(--gold);transform:rotate(45deg);opacity:.85;}
+.cover-kicker{font-size:10.5px;letter-spacing:.5em;color:var(--gold);margin-bottom:14px;padding-left:.5em;font-weight:500;}
+.cover h1{font-family:"Noto Serif SC","Songti SC","SimSun",serif;font-weight:900;font-size:clamp(26px,6.5vw,42px);color:var(--gold-hi);letter-spacing:.14em;text-shadow:0 2px 20px rgba(0,0,0,.4);line-height:1.3;}
+.cover-rule{width:52px;height:1px;margin:18px 0 14px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.cover-sub{font-size:12px;letter-spacing:.4em;color:var(--paper);padding-left:.4em;font-weight:300;}
+.cover-data{margin-top:22px;display:flex;flex-direction:column;gap:8px;align-items:center;color:var(--paper-dim);font-size:11px;letter-spacing:.14em;font-weight:300;}
+.cover-data .row{display:flex;gap:14px;align-items:center;}
+.cover-data .dot{width:3px;height:3px;border-radius:50%;background:var(--gold);opacity:.7;}
+.cover-hint{position:absolute;bottom:7%;left:0;right:0;text-align:center;font-size:10.5px;letter-spacing:.34em;padding-left:.34em;color:var(--paper-dim);font-weight:300;animation:hintPulse 2.6s ease-in-out infinite;}
+@keyframes hintPulse{0%,100%{opacity:.5;}50%{opacity:1;}}
+/* 目录 */
+.toc{position:absolute;inset:0;background:linear-gradient(168deg,#28553D 0%, #1B3126 58%, #11221A 100%);display:flex;flex-direction:column;align-items:center;padding:7% 8%;}
+.toc-title{font-family:"Noto Serif SC",serif;font-weight:900;font-size:clamp(20px,4.5vw,30px);color:var(--gold-hi);letter-spacing:.28em;padding-left:.28em;margin-bottom:4px;}
+.toc-sub{font-size:10px;letter-spacing:.32em;color:var(--paper-dim);padding-left:.32em;font-weight:300;margin-bottom:20px;}
+.toc-list{width:100%;display:flex;flex-direction:column;gap:12px;}
+.toc-item{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border:1px solid rgba(201,162,75,.35);border-radius:8px;background:rgba(242,234,216,.05);cursor:pointer;transition:background .2s ease, border-color .2s ease, transform .1s ease;}
+.toc-item:active{transform:scale(.97);background:rgba(201,162,75,.15);border-color:rgba(201,162,75,.6);}
+.toc-item .t-name{font-family:"Noto Serif SC",serif;font-size:15px;letter-spacing:.18em;color:var(--gold-hi);font-weight:600;}
+.toc-item .t-meta{display:flex;align-items:center;gap:10px;}
+.toc-item .t-count{font-size:10.5px;color:var(--paper-dim);letter-spacing:.12em;}
+.toc-item .t-arrow{color:var(--gold);font-size:14px;}
+.toc-item .t-sub{font-size:9.5px;color:rgba(242,234,216,.45);letter-spacing:.1em;margin-top:3px;}
+/* 章节页 */
+.section{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:linear-gradient(168deg,#28553D 0%, #1B3126 58%, #11221A 100%);}
+.section-frame{position:absolute;inset:6%;border:1px solid rgba(201,162,75,.4);pointer-events:none;}
+.section-frame::after{content:"";position:absolute;inset:7px;border:1px solid rgba(201,162,75,.16);}
+.section-no{font-size:10px;letter-spacing:.5em;color:var(--gold);margin-bottom:16px;padding-left:.5em;font-weight:500;}
+.section-name{font-family:"Noto Serif SC",serif;font-weight:900;font-size:clamp(26px,6vw,40px);color:var(--gold-hi);letter-spacing:.16em;line-height:1.3;}
+.section-rule{width:44px;height:1px;margin:16px 0 12px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.section-sub{font-size:11px;letter-spacing:.3em;color:var(--paper);padding-left:.3em;font-weight:300;}
+.section-count{margin-top:20px;font-size:10px;letter-spacing:.22em;color:var(--paper-dim);font-weight:300;}
+/* 封底 */
+.backcover{position:absolute;inset:0;background:linear-gradient(168deg,#28553D 0%, #1B3126 58%, #11221A 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;text-align:center;}
+.backcover .the-end{font-family:"Noto Serif SC",serif;font-weight:900;font-size:clamp(26px,6.5vw,40px);color:var(--gold-hi);letter-spacing:.3em;padding-left:.3em;}
+.backcover .end-sub{font-size:11px;letter-spacing:.32em;color:var(--paper-dim);padding-left:.32em;font-weight:300;}
+/* 控制 */
+.controls{flex:none;display:flex;align-items:center;justify-content:center;gap:18px;padding:calc(12px + env(safe-area-inset-bottom)) 0 18px;position:relative;z-index:2;}
+.btn{width:44px;height:44px;border-radius:50%;border:1px solid rgba(242,234,216,.3);background:rgba(242,234,216,.07);color:var(--paper);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background .2s ease, border-color .2s ease, opacity .2s ease, transform .1s ease;}
+.btn:hover{background:rgba(201,162,75,.2);border-color:rgba(201,162,75,.55);}
+.btn:active{transform:scale(.93);}
+.btn.disabled{opacity:.2;pointer-events:none;}
+.btn svg{width:19px;height:19px;}
+.pager{font-family:"Noto Serif SC",serif;font-size:13px;letter-spacing:.24em;color:var(--paper-dim);min-width:84px;text-align:center;font-variant-numeric:tabular-nums;}
+.pager b{color:var(--gold-hi);font-weight:600;}
+#toast{position:fixed;top:calc(16px + env(safe-area-inset-top));left:0;right:0;text-align:center;z-index:40;opacity:0;transform:translateY(-8px);transition:opacity .45s ease, transform .45s ease;pointer-events:none;}
+#toast.show{opacity:1;transform:translateY(0);}
+#toast span{display:inline-block;font-size:11.5px;letter-spacing:.3em;padding-left:.3em;color:var(--paper);background:rgba(22,38,31,.7);border:1px solid rgba(201,162,75,.32);border-radius:999px;padding:9px 20px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
+@media (prefers-reduced-motion: reduce){.page{animation-duration:.01s !important;}.loader-ring,.cover-hint{animation:none;}}
+</style>
+</head>
+<body>
+
+<div id="loader">
+  <div class="loader-ring"></div>
+  <div class="loader-text">正在装订画册</div>
+  <div class="loader-num" id="loaderNum">0 / 109</div>
+</div>
+<div id="toast"><span>左右滑动 · 点击翻页 · 目录可跳转</span></div>
+
+<main class="stage"><div class="book" id="book"></div></main>
+
+<footer class="controls">
+  <button class="btn" id="btnPrev" aria-label="上一页" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg></button>
+  <div class="pager" id="pager"><b>1</b> / 117</div>
+  <button class="btn" id="btnNext" aria-label="下一页" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></button>
+</footer>
+
+<script>
+(function(){
+'use strict';
+
+var SECTIONS = [
+{name:'香樟树',sub:'千年古樟 · 参天巨木',count:58,urls:["https://aka.doubaocdn.com/s/3pBQAD3gw8", "https://aka.doubaocdn.com/s/D64rk7KTul", "https://aka.doubaocdn.com/s/p6WjUi7lDp", "https://aka.doubaocdn.com/s/83v3vzvPkV", "https://aka.doubaocdn.com/s/PU55fPgufa", "https://aka.doubaocdn.com/s/EUEGntJPwo", "https://aka.doubaocdn.com/s/at11KhcDeY", "https://aka.doubaocdn.com/s/uWHToDXAH1", "https://aka.doubaocdn.com/s/v4hjRUOnuK", "https://aka.doubaocdn.com/s/48tQUsZ8Tc", "https://aka.doubaocdn.com/s/3F4MTKz7NU", "https://aka.doubaocdn.com/s/emaZrd3PUj", "https://aka.doubaocdn.com/s/V44U22IPRG", "https://aka.doubaocdn.com/s/f3KP4Lpcmr", "https://aka.doubaocdn.com/s/xefUjTuFZI", "https://aka.doubaocdn.com/s/69UTNj9Ooq", "https://aka.doubaocdn.com/s/ope9caTVUq", "https://aka.doubaocdn.com/s/c8sQDImdzS", "https://aka.doubaocdn.com/s/FE60AbyIkf", "https://aka.doubaocdn.com/s/I3Czfi14Xc", "https://aka.doubaocdn.com/s/u8ATmN4PLQ", "https://aka.doubaocdn.com/s/HQiE3lhqsI", "https://aka.doubaocdn.com/s/4xcERt6o7S", "https://aka.doubaocdn.com/s/Hj49XXeWdc", "https://aka.doubaocdn.com/s/dIrU2Xnxg0", "https://aka.doubaocdn.com/s/faYSESKoVM", "https://aka.doubaocdn.com/s/obpg88UzJe", "https://aka.doubaocdn.com/s/f0g43L90nT", "https://aka.doubaocdn.com/s/9IuNxgpxd0", "https://aka.doubaocdn.com/s/csrWmAINJn", "https://aka.doubaocdn.com/s/ELaOeoUVMX", "https://aka.doubaocdn.com/s/J3iwEWXOLw", "https://aka.doubaocdn.com/s/w7ODyNStaY", "https://aka.doubaocdn.com/s/tq2Iacon7Y", "https://aka.doubaocdn.com/s/CmgZXbVnUd", "https://aka.doubaocdn.com/s/3bkfVUWnuj", "https://aka.doubaocdn.com/s/nfx45L57Xb", "https://aka.doubaocdn.com/s/qZUNP5iNRA", "https://aka.doubaocdn.com/s/ToxZspqhsh", "https://aka.doubaocdn.com/s/YzRINMSVtM", "https://aka.doubaocdn.com/s/11KjcIjApg", "https://aka.doubaocdn.com/s/Lsfy2LCOEV", "https://aka.doubaocdn.com/s/B2KWxso33a", "https://aka.doubaocdn.com/s/1Iv0g3uFc3", "https://aka.doubaocdn.com/s/U0VmfoNDIh", "https://aka.doubaocdn.com/s/UPR86SHpqL", "https://aka.doubaocdn.com/s/SMUV7ko6Th", "https://aka.doubaocdn.com/s/KO7gVScycs", "https://aka.doubaocdn.com/s/KVOVC4G8bD", "https://aka.doubaocdn.com/s/jKKlc6FuOV", "https://aka.doubaocdn.com/s/cUbUdwvjSh", "https://aka.doubaocdn.com/s/fl3NXyb6At", "https://aka.doubaocdn.com/s/2SHEAumr5t", "https://aka.doubaocdn.com/s/YjPocGWXN5", "https://aka.doubaocdn.com/s/wRNk4CTjlz", "https://aka.doubaocdn.com/s/BRBUiLVL0F", "https://aka.doubaocdn.com/s/2FQra0sDsE", "https://aka.doubaocdn.com/s/uWMld9CrDn"],ratios:[0.615, 0.615, 0.615, 0.665, 0.618, 0.615, 0.615, 1.247, 1.249, 1.247, 1.247, 1.248, 0.615, 0.615, 0.615, 0.615, 0.615, 0.615, 0.615, 0.615, 1.249, 1.247, 1.247, 1.247, 1.247, 0.615, 0.618, 0.615, 0.615, 0.616, 0.615, 1.247, 0.707, 0.729, 0.615, 0.617, 0.743, 0.615, 0.66, 0.615, 0.615, 1.247, 1.247, 0.615, 0.615, 0.615, 0.646, 0.615, 0.615, 0.615, 0.764, 0.615, 0.726, 0.615, 0.615, 0.615, 0.615, 0.615]},
+{name:'雷击香樟树',sub:'历劫重生 · 雷火淬炼',count:25,urls:["https://aka.doubaocdn.com/s/iMilc0Pjs9", "https://aka.doubaocdn.com/s/9vgBaH16Qt", "https://aka.doubaocdn.com/s/jtXQcS9xTe", "https://aka.doubaocdn.com/s/OkBzil7R4w", "https://aka.doubaocdn.com/s/u9BQdv7gRj", "https://aka.doubaocdn.com/s/Hxzi4KyuCV", "https://aka.doubaocdn.com/s/CCc8nCIE3T", "https://aka.doubaocdn.com/s/uoV7jUnZUS", "https://aka.doubaocdn.com/s/SHX1RXV8Bh", "https://aka.doubaocdn.com/s/HVV7xU5Zf3", "https://aka.doubaocdn.com/s/kvXm24EN57", "https://aka.doubaocdn.com/s/psOjsyeOXO", "https://aka.doubaocdn.com/s/BuSQ7PjGU6", "https://aka.doubaocdn.com/s/l9PPlqvokI", "https://aka.doubaocdn.com/s/v1U8c0rx2V", "https://aka.doubaocdn.com/s/M3x0QlgmDV", "https://aka.doubaocdn.com/s/iz9bfkECWJ", "https://aka.doubaocdn.com/s/N2AYCv1c9Z", "https://aka.doubaocdn.com/s/CFGj4STecL", "https://aka.doubaocdn.com/s/wWG57APYoO", "https://aka.doubaocdn.com/s/U9RQM7lsUX", "https://aka.doubaocdn.com/s/LFRkTjM7pH", "https://aka.doubaocdn.com/s/9NDtDQmh3b", "https://aka.doubaocdn.com/s/05vJuAP6Ct", "https://aka.doubaocdn.com/s/xZy1tM3vVK"],ratios:[0.616, 0.615, 0.615, 0.754, 0.735, 0.615, 1.247, 1.247, 1.249, 0.615, 0.615, 0.615, 0.616, 0.615, 0.615, 0.617, 0.617, 1.247, 1.247, 1.247, 1.247, 1.247, 0.617, 0.654, 0.615]},
+{name:'侧柏树',sub:'苍翠古柏 · 长寿之木',count:8,urls:["https://aka.doubaocdn.com/s/y75VGhkgbg", "https://aka.doubaocdn.com/s/wjZ0aMj00j", "https://aka.doubaocdn.com/s/srDbKkNjlc", "https://aka.doubaocdn.com/s/XXcIuazORo", "https://aka.doubaocdn.com/s/2oxDeoJKmN", "https://aka.doubaocdn.com/s/7SIUuUpsrJ", "https://aka.doubaocdn.com/s/FSWbeNeafC", "https://aka.doubaocdn.com/s/PGQPW19jRm"],ratios:[0.629, 0.615, 0.615, 0.615, 0.615, 0.615, 1.247, 1.247]},
+{name:'香樟兜',sub:'盘根错节 · 古树之基',count:7,urls:["https://aka.doubaocdn.com/s/CSR9ZgYLUp", "https://aka.doubaocdn.com/s/oGiQGTpa9A", "https://aka.doubaocdn.com/s/xUml3weGVl", "https://aka.doubaocdn.com/s/63jpc9tMaR", "https://aka.doubaocdn.com/s/fszVSjXXrd", "https://aka.doubaocdn.com/s/ud9BntoCXv", "https://aka.doubaocdn.com/s/b2qgWMdxQQ"],ratios:[1.247, 1.247, 0.617, 0.615, 0.617, 0.615, 0.615]},
+{name:'金桂',sub:'金秋桂子 · 满树芬芳',count:11,urls:["https://aka.doubaocdn.com/s/Wdwh99WAjB", "https://aka.doubaocdn.com/s/5TwNu1lR7q", "https://aka.doubaocdn.com/s/DekUQ70y7h", "https://aka.doubaocdn.com/s/DZgt8PGi0g", "https://aka.doubaocdn.com/s/Y5nB6jv7ph", "https://aka.doubaocdn.com/s/38QuVhVG2f", "https://aka.doubaocdn.com/s/vpRw2Dyyfl", "https://aka.doubaocdn.com/s/PTWRwYrKRD", "https://aka.doubaocdn.com/s/Cn0yYSOQTd", "https://aka.doubaocdn.com/s/s6jAEPaLzE", "https://aka.doubaocdn.com/s/ija99CUAYz"],ratios:[0.615, 0.615, 0.615, 0.615, 0.615, 1.247, 0.615, 0.615, 0.615, 0.615, 0.615]}
+];
+
+/* 页序：0封面, 1目录, [章节i + 照片i]*5, 封底 */
+var PAGE_TYPES = ['cover','toc'];
+var PHOTO_INDEX = {};   /* 页idx -> {sec, img} */
+var SECTION_PAGES = []; /* 每分类章节页idx */
+var TOTAL = 2;
+SECTIONS.forEach(function(s, i){
+  SECTION_PAGES.push(TOTAL);
+  TOTAL += 1 + s.count;
+  for(var j = 0; j < s.count; j++){
+    PAGE_TYPES.push('photo');
+    PHOTO_INDEX[TOTAL] = {sec:i, img:j};
+    TOTAL++;
+  }
+});
+PAGE_TYPES.push('backcover');
+TOTAL += 1;
+
+var book = document.getElementById('book');
+var pager = document.getElementById('pager');
+var btnPrev = document.getElementById('btnPrev');
+var btnNext = document.getElementById('btnNext');
+var loader = document.getElementById('loader');
+var loaderNum = document.getElementById('loaderNum');
+var toast = document.getElementById('toast');
+
+var pages = [];
+var cur = 0;
+var animating = false;
+var ratios = [];
+var COVER_RATIO = 0.62;
+ratios[0] = COVER_RATIO;      /* 封面 */
+ratios[1] = COVER_RATIO;      /* 目录 */
+ratios[TOTAL-1] = COVER_RATIO;/* 封底 */
+SECTIONS.forEach(function(s, i){
+  ratios[SECTION_PAGES[i]] = COVER_RATIO; /* 章节页 */
+  for(var j = 0; j < s.count; j++){
+    ratios[SECTION_PAGES[i]+1+j] = s.ratios[j];
+  }
+});
+
+/* ============ 音效 ============ */
+var audioCtx = null, audioUnlocked = false;
+function initAudio(){
+  if(audioUnlocked) return;
+  try{
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+    audioUnlocked = true;
+  }catch(e){ audioCtx = null; }
+}
+function playFlipSound(){
+  if(!audioCtx || audioCtx.state !== 'running') return;
+  var t = audioCtx.currentTime, sr = audioCtx.sampleRate;
+  var dur = 0.32;
+  var buf = audioCtx.createBuffer(1, Math.floor(sr * dur), sr);
+  var data = buf.getChannelData(0);
+  for(var i = 0; i < data.length; i++){
+    var p = i / data.length;
+    var env = Math.pow(1 - p, 1.4) * (0.6 + 0.4 * Math.sin(p * Math.PI));
+    data[i] = (Math.random() * 2 - 1) * env;
+  }
+  var src = audioCtx.createBufferSource(); src.buffer = buf;
+  var bp = audioCtx.createBiquadFilter(); bp.type = 'bandpass';
+  bp.frequency.setValueAtTime(3200, t); bp.frequency.exponentialRampToValueAtTime(1400, t + dur); bp.Q.value = 0.7;
+  var g = audioCtx.createGain();
+  g.gain.setValueAtTime(0.14, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  src.connect(bp); bp.connect(g); g.connect(audioCtx.destination); src.start(t);
+  var osc = audioCtx.createOscillator(); osc.type = 'sine';
+  osc.frequency.setValueAtTime(200, t + 0.16); osc.frequency.exponentialRampToValueAtTime(70, t + 0.26);
+  var og = audioCtx.createGain();
+  og.gain.setValueAtTime(0.0001, t + 0.16); og.gain.exponentialRampToValueAtTime(0.07, t + 0.17); og.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+  osc.connect(og); og.connect(audioCtx.destination); osc.start(t + 0.16); osc.stop(t + 0.3);
+}
+document.addEventListener('touchstart', initAudio, {passive:true, once:true});
+document.addEventListener('click', initAudio, {once:true});
+
+/* ============ 构建页面 ============ */
+function pad(n){ return n < 10 ? '0' + n : '' + n; }
+function coverHTML(){
+  return '<div class="cover"><div class="cover-frame"></div><div class="cover-diamond"></div>' +
+    '<div class="cover-kicker">千 年 古 树 档 案</div><h1>古树图鉴<br>千年古木志</h1>' +
+    '<div class="cover-rule"></div><div class="cover-sub">香樟 · 侧柏 · 金桂 全记录</div>' +
+    '<div class="cover-data"><div class="row"><span>五 大 类 别</span><span class="dot"></span><span>109 幅 影 像</span></div>' +
+    '<div class="row"><span>千年树龄</span><span class="dot"></span><span>历劫重生</span></div></div>' +
+    '<div class="cover-hint">轻触目录 · 翻阅千年</div></div>';
+}
+function tocHTML(){
+  var html = '<div class="toc"><div class="toc-title">目 录</div><div class="toc-sub">CONTENTS</div><div class="toc-list">';
+  SECTIONS.forEach(function(s, i){
+    html += '<div class="toc-item" data-sec="' + i + '">' +
+      '<div><div class="t-name">' + s.name + '</div><div class="t-sub">' + s.sub + '</div></div>' +
+      '<div class="t-meta"><span class="t-count">' + s.count + ' 幅</span><span class="t-arrow">›</span></div>' +
+      '</div>';
+  });
+  html += '</div></div>';
+  return html;
+}
+function sectionHTML(i){
+  var s = SECTIONS[i];
+  return '<div class="section"><div class="section-frame"></div>' +
+    '<div class="section-no">第 ' + (i+1) + ' 章</div>' +
+    '<div class="section-name">' + s.name + '</div>' +
+    '<div class="section-rule"></div><div class="section-sub">' + s.sub + '</div>' +
+    '<div class="section-count">共 ' + s.count + ' 幅影像 · 轻触翻阅</div></div>';
+}
+function backcoverHTML(){
+  return '<div class="backcover"><div class="the-end">完</div><div class="end-sub">千年古树档案 · 古树图鉴</div></div>';
+}
+function backMarkHTML(no){
+  return '<div class="back-mark"><svg width="30" height="30" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M20 6 C16 12 14 16 14 21 C14 27 17 32 20 34 C23 32 26 27 26 21 C26 16 24 12 20 6 Z"/><path d="M8 34 L32 34"/></svg><div class="back-no">' + no + '</div></div>';
+}
+
+function buildPages(){
+  var i, p, front, back;
+  for(i = 0; i < TOTAL; i++){
+    p = document.createElement('div');
+    p.className = 'page' + (i === 0 ? ' is-cur' : '');
+    p.dataset.idx = i;
+    front = document.createElement('div');
+    front.className = 'pg-face pg-front';
+    if(PAGE_TYPES[i] === 'cover'){ front.innerHTML = coverHTML(); }
+    else if(PAGE_TYPES[i] === 'toc'){ front.innerHTML = tocHTML(); }
+    else if(PAGE_TYPES[i] === 'photo'){
+      var img = document.createElement('img');
+      img.className = 'photo';
+      img.alt = '古树影像 ' + i;
+      img.loading = 'lazy';
+      front.appendChild(img);
+    }
+    else if(PAGE_TYPES[i] === 'backcover'){ front.innerHTML = backcoverHTML(); }
+    else { /* section */
+      var si = SECTION_PAGES.indexOf(i);
+      front.innerHTML = sectionHTML(si);
+    }
+    back = document.createElement('div');
+    back.className = 'pg-face pg-back';
+    back.innerHTML = backMarkHTML(pad(i + 1));
+    p.appendChild(front); p.appendChild(back);
+    book.appendChild(p); pages.push(p);
+  }
+}
+
+/* 按需加载：翻到某页时设置img src（浏览器缓存保证不重复下载） */
+function ensureImg(pageIdx){
+  if(PAGE_TYPES[pageIdx] !== 'photo') return;
+  var info = PHOTO_INDEX[pageIdx];
+  var url = SECTIONS[info.sec].urls[info.img];
+  var img = pages[pageIdx].querySelector('.photo');
+  if(img && !img.src) img.src = url;
+}
+function preloadNear(idx){
+  for(var d = -2; d <= 2; d++){
+    var t = idx + d;
+    if(t >= 0 && t < TOTAL) ensureImg(t);
+  }
+}
+
+/* ============ 尺寸 ============ */
+function resize(){
+  var ratio = ratios[cur] || COVER_RATIO;
+  var w = window.innerWidth, h = window.innerHeight;
+  var bh = Math.min(h * 0.78, 900);
+  var bw = bh * ratio;
+  if(bw > w * 0.9){ bw = w * 0.9; bh = bw / ratio; }
+  book.style.width = bw + 'px';
+  book.style.height = bh + 'px';
+}
+
+/* ============ 翻页 ============ */
+function finishFlip(el){
+  el.classList.remove('is-cur','is-flipping','flip-fwd','flip-back');
+  el.classList.add('is-done');
+  var np = pages[cur];
+  np.classList.remove('is-done'); np.classList.add('is-cur');
+  animating = false;
+  preloadNear(cur);
+  resize(); updateUI();
+}
+function goNext(){
+  if(animating || cur >= TOTAL - 1) return;
+  animating = true; playFlipSound();
+  var el = pages[cur];
+  el.classList.add('is-flipping','flip-fwd');
+  var done = false;
+  var onEnd = function(e){
+    if(done) return;
+    if(e && e.animationName && e.animationName !== 'flipFwd') return;
+    done = true; el.removeEventListener('animationend', onEnd);
+    cur++; finishFlip(el);
+  };
+  el.addEventListener('animationend', onEnd);
+  setTimeout(function(){ if(animating) onEnd(null); }, 700);
+}
+function goPrev(){
+  if(animating || cur <= 0) return;
+  animating = true; playFlipSound();
+  var el = pages[cur];
+  el.classList.add('is-flipping','flip-back');
+  var done = false;
+  var onEnd = function(e){
+    if(done) return;
+    if(e && e.animationName && e.animationName !== 'flipBack') return;
+    done = true; el.removeEventListener('animationend', onEnd);
+    cur--; finishFlip(el);
+  };
+  el.addEventListener('animationend', onEnd);
+  setTimeout(function(){ if(animating) onEnd(null); }, 700);
+}
+/* 目录/章节跳转：快速翻页过渡 */
+function jumpTo(target){
+  if(animating || target === cur || target < 0 || target >= TOTAL) return;
+  animating = true; playFlipSound();
+  var el = pages[cur];
+  var dir = target > cur ? 'flip-fwd' : 'flip-back';
+  el.classList.add('is-flipping', dir);
+  setTimeout(function(){
+    cur = target;
+    pages.forEach(function(pg, i){
+      if(i !== cur){
+        pg.classList.remove('is-cur','is-flipping','flip-fwd','flip-back');
+        pg.classList.add('is-done');
+      }
+    });
+    finishFlip(el);
+  }, 300);
+}
+function updateUI(){
+  pager.innerHTML = '<b>' + (cur + 1) + '</b> / ' + TOTAL;
+  btnPrev.classList.toggle('disabled', cur <= 0);
+  btnNext.classList.toggle('disabled', cur >= TOTAL - 1);
+}
+
+/* ============ 交互 ============ */
+var startX = 0, startY = 0, moved = false, suppressClick = false;
+book.addEventListener('touchstart', function(e){
+  startX = e.touches[0].clientX; startY = e.touches[0].clientY; moved = false;
+}, {passive:true});
+book.addEventListener('touchmove', function(e){
+  var dx = e.touches[0].clientX - startX, dy = e.touches[0].clientY - startY;
+  if(Math.abs(dx) > 8 || Math.abs(dy) > 8) moved = true;
+  if(moved && Math.abs(dx) > Math.abs(dy)) e.preventDefault();
+}, {passive:false});
+book.addEventListener('touchend', function(e){
+  if(!moved) return;
+  var dx = e.changedTouches[0].clientX - startX;
+  if(Math.abs(dx) > 40){
+    suppressClick = true;
+    if(dx < 0) goNext(); else goPrev();
+    setTimeout(function(){ suppressClick = false; }, 350);
+  }
+}, {passive:true});
+book.addEventListener('click', function(e){
+  if(suppressClick) return;
+  /* 目录项点击 */
+  var tocItem = e.target.closest('.toc-item');
+  if(tocItem){
+    var si = parseInt(tocItem.getAttribute('data-sec'), 10);
+    jumpTo(SECTION_PAGES[si]);
+    return;
+  }
+  /* 章节页点击：进入第一张照片 */
+  var si2 = SECTION_PAGES.indexOf(cur);
+  if(PAGE_TYPES[cur] === 'section' && si2 >= 0){
+    goNext();
+    return;
+  }
+  var r = book.getBoundingClientRect();
+  var x = e.clientX - r.left;
+  if(x < r.width * 0.42) goPrev();
+  else if(x > r.width * 0.58) goNext();
+});
+btnPrev.addEventListener('click', goPrev);
+btnNext.addEventListener('click', goNext);
+document.addEventListener('keydown', function(e){
+  if(e.key === 'ArrowRight') goNext();
+  else if(e.key === 'ArrowLeft') goPrev();
+});
+window.addEventListener('resize', resize);
+
+/* ============ 预加载 ============ */
+var loaded = 0;
+function preloadKey(){
+  /* 关键页：封面、目录、5个章节页、前几张照片 */
+  var list = [];
+  list.push(0); list.push(1);
+  SECTIONS.forEach(function(s, i){ list.push(SECTION_PAGES[i]); });
+  for(var i = 2; i < 8 && i < TOTAL; i++) list.push(i);
+  var real = list.filter(function(idx){ return PAGE_TYPES[idx] === 'photo'; });
+  if(real.length === 0){ start(); return; }
+  var target = real.length;
+  real.forEach(function(idx){
+    var info = PHOTO_INDEX[idx];
+    var im = new Image();
+    im.onload = im.onerror = function(){
+      loaded++;
+      loaderNum.textContent = loaded + ' / ' + real.length;
+      if(loaded >= target) start();
+    };
+    im.src = SECTIONS[info.sec].urls[info.img];
+  });
+}
+
+var started = false;
+function start(){
+  if(started) return;
+  started = true;
+  buildPages();
+  resize();
+  preloadNear(0);
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      book.classList.add('ready');
+      loader.classList.add('hide');
+      updateUI();
+      setTimeout(function(){ toast.classList.add('show'); setTimeout(function(){ toast.classList.remove('show'); }, 3200); }, 400);
+    });
+  });
+}
+
+/* 容错：若预加载回调异常，5秒后仍启动 */
+setTimeout(start, 5000);
+preloadKey();
+})();
+</script>
+</body>
+</html>
